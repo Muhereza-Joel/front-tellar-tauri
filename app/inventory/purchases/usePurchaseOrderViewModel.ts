@@ -10,7 +10,7 @@ import {
 } from "../../../db/schemas/purchase_orders";
 import { type Product } from "../../../db/schemas/product";
 import { type Supplier } from "../../../db/schemas/suppliers";
-import { eq, sql, isNull, desc } from "drizzle-orm";
+import { eq, sql, isNull, desc, SQLWrapper, AnyColumn } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
@@ -135,8 +135,10 @@ export function usePurchaseOrderViewModel() {
 
     try {
       const results = await db.query.purchaseOrders.findMany({
-        where: (po) => isNull(po.deleted_at),
-        orderBy: (po) => [desc(po.created_at)],
+        where: (po: { deleted_at: SQLWrapper }) => isNull(po.deleted_at),
+        orderBy: (po: { created_at: SQLWrapper | AnyColumn }) => [
+          desc(po.created_at),
+        ],
       });
 
       setPoList(results);

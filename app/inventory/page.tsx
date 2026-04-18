@@ -187,14 +187,14 @@ export default function InventoryPage() {
                     <td className="px-6 py-4">
                       <div
                         className={`text-sm font-bold ${
-                          item.current_stock <= item.minimum_stock_level
+                          item.current_stock != null && item.minimum_stock_level != null && item.current_stock <= item.minimum_stock_level
                             ? "text-red-600"
                             : "text-zinc-800 dark:text-zinc-200"
                         }`}
                       >
                         {item.current_stock} {item.unit_plural}
                       </div>
-                      {item.current_stock <= item.minimum_stock_level && (
+                      {item.current_stock != null && item.minimum_stock_level != null && item.current_stock <= item.minimum_stock_level && (
                         <div className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
                           <AlertTriangle size={10} /> Low stock
                         </div>
@@ -202,7 +202,7 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-bold text-emerald-600 dark:text-emerald-500">
-                        UGX {item.selling_price.toLocaleString()}
+                        UGX {item.selling_price != null ? item.selling_price.toLocaleString() : "N/A"}
                       </span>
                       <span className="text-[10px] text-zinc-400 ml-1">
                         / {item.unit_singular}

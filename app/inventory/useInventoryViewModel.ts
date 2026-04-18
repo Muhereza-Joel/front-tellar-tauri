@@ -9,11 +9,11 @@ import { type ProductVariant } from "../../db/schemas/product_variants";
 type InventoryItem = {
   uuid: string;
   name: string;
-  sku: string;
-  selling_price: number;
-  current_stock: number;
-  minimum_stock_level: number;
-  is_active: boolean;
+  sku: string | null;
+  selling_price: number | null;
+  current_stock: number | null;
+  minimum_stock_level: number | null;
+  is_active: boolean | null;
   unit_singular: string;
   unit_plural: string;
   // product specific
@@ -80,7 +80,7 @@ export function useInventoryViewModel(activeMode: "products" | "variants") {
   const rawItems: InventoryItem[] = useMemo(() => {
     if (activeMode === "products") {
       return productsList.map((p) => {
-        const { singular, plural } = getUnitNames(p.uom);
+        const { singular, plural } = getUnitNames(p.uom || "");
         const category = categories.find((c) => c.uuid === p.category_id);
         return {
           uuid: p.uuid,
@@ -101,7 +101,7 @@ export function useInventoryViewModel(activeMode: "products" | "variants") {
         .map((v) => {
           const parent = productsList.find((p) => p.uuid === v.product_id);
           if (!parent) return null;
-          const { singular, plural } = getUnitNames(parent.uom);
+          const { singular, plural } = getUnitNames(parent.uom || "");
           return {
             uuid: v.uuid,
             name: `${parent.name} (${v.attribute_type}: ${v.attribute_value})`,
@@ -126,7 +126,7 @@ export function useInventoryViewModel(activeMode: "products" | "variants") {
     return rawItems.filter(
       (item) =>
         item.name.toLowerCase().includes(term) ||
-        item.sku.toLowerCase().includes(term),
+        item.sku?.toLowerCase().includes(term),
     );
   }, [rawItems, searchTerm]);
 
@@ -147,11 +147,12 @@ export function useInventoryViewModel(activeMode: "products" | "variants") {
   const stats = useMemo(() => {
     const totalSkus = filteredItems.length;
     const totalValue = filteredItems.reduce(
-      (sum, item) => sum + item.selling_price * item.current_stock,
+      (sum, item) =>
+        sum + (item.selling_price ?? 0) * (item.current_stock ?? 0),
       0,
     );
     const lowStockCount = filteredItems.filter(
-      (item) => item.current_stock <= item.minimum_stock_level,
+      (item) => (item.current_stock ?? 0) <= (item.minimum_stock_level ?? 0),
     ).length;
     return { totalSkus, totalValue, lowStockCount };
   }, [filteredItems]);

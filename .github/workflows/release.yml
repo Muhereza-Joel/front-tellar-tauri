@@ -34,5 +34,5 @@ jobs:
         with:
           tagName: v__VERSION__ # This pulls the version from your tauri.conf.json
           releaseName: "FrontTella v__VERSION__"
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false

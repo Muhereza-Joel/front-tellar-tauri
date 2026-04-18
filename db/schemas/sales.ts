@@ -1,0 +1,39 @@
+import { sql } from "drizzle-orm";
+import { sqliteTable, text, real } from "drizzle-orm/sqlite-core";
+
+export const sales = sqliteTable("sales", {
+  uuid: text().primaryKey().notNull(),
+  customer_id: text(),
+  type: text().notNull().default("DIRECT"), // DIRECT or INVOICE
+  status: text().notNull().default("COMPLETED"),
+  total_amount: real().default(0).notNull(),
+  amount_paid: real().default(0).notNull(),
+  tenant_id: text(),
+  created_at: text()
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text()
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  deleted_at: text(),
+});
+
+export const saleItems = sqliteTable("sale_items", {
+  uuid: text().primaryKey().notNull(),
+  sale_id: text()
+    .notNull()
+    .references(() => sales.uuid),
+  product_id: text().notNull(),
+  variant_id: text(),
+  quantity: real().notNull().default(1),
+  unit_price: real().notNull(),
+  subtotal: real().notNull(),
+  tenant_id: text(),
+  created_at: text()
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text()
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  deleted_at: text(),
+});

@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent text selection globally */
+html,
+body {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and Consumer Windows */
+  user-select: none; /* Standard syntax */
+}
+
+/* Allow selection in specific input-like elements for accessibility */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Base scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  transition: opacity 0.3s ease-in-out; /* 👈 smooth fade */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Fade-in/out when sidebar expands/collapses */
+aside:hover ::-webkit-scrollbar {
+  opacity: 1;
+}
+
+aside ::-webkit-scrollbar {
+  opacity: 0; /* hidden by default */
+}
+
+/* --- Searchable Dropdown Custom Integration --- */
+
+/* Base Container Styling */
+.lda-dropdown-container {
+  width: 100% !important;
+  border-radius: 0.375rem !important; /* matches rounded-md */
+  min-height: 38px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* 1. LIGHT MODE (Default) */
+:root {
+  --lda-bg: #ffffff;
+  --lda-border: #d4d4d8; /* zinc-300 */
+  --lda-text: #18181b; /* zinc-900 */
+  --lda-placeholder: #71717a; /* zinc-500 */
+  --lda-hover: #f4f4f5; /* zinc-100 */
+  --lda-selected-bg: #eff6ff; /* blue-50 */
+  --lda-selected-text: #2563eb; /* blue-600 */
+  --lda-focus-ring: #3b82f6; /* blue-500 */
+}
+
+/* 2. DARK MODE (Triggered by .dark class on html/body) */
+.dark {
+  --lda-bg: #000000;
+  --lda-border: #27272a; /* zinc-800 */
+  --lda-text: #f4f4f5; /* zinc-100 */
+  --lda-placeholder: #a1a1aa; /* zinc-400 */
+  --lda-hover: #18181b; /* zinc-900 */
+  --lda-selected-bg: #18181b; /* zinc-900 */
+  --lda-selected-text: #60a5fa; /* blue-400 */
+  --lda-focus-ring: #2563eb;
+}
+
+/* Apply Variables to Component Classes */
+.lda-dropdown-container {
+  background-color: var(--lda-bg) !important;
+  border-color: var(--lda-border) !important;
+}
+
+.lda-dropdown-container:focus-within {
+  border-color: var(--lda-focus-ring) !important;
+  box-shadow: 0 0 0 1px var(--lda-focus-ring) !important;
+}
+
+.lda-dropdown-search-query-input {
+  color: var(--lda-text) !important;
+  font-size: 0.875rem !important; /* matches text-sm */
+}
+
+.lda-dropdown-search-query-input::placeholder {
+  color: var(--lda-placeholder) !important;
+}
+
+/* Options List (The Popover) */
+.lda-dropdown-options {
+  background-color: var(--lda-bg) !important;
+  border: 1px solid var(--lda-border) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  margin-top: 4px !important;
+}
+
+/* Individual Option Items */
+.lda-dropdown-option {
+  color: var(--lda-text) !important;
+  font-size: 0.875rem !important;
+  padding: 8px 12px !important;
+}
+
+.lda-dropdown-option-focused {
+  background-color: var(--lda-hover) !important;
+}
+
+.lda-dropdown-option-selected {
+  background-color: var(--lda-selected-bg) !important;
+  color: var(--lda-selected-text) !important;
+}
+
+/* Trigger Icon */
+.lda-dropdown-trigger-icon {
+  color: var(--lda-placeholder) !important;
+}
+
+/* --- Fix for Search Match Visibility --- */
+
+/* Light Mode Matching Text */
+.lda-dropdown-option-label span,
+.lda-dropdown-option-label b {
+  color: #2563eb !important; /* blue-600: matches your primary theme */
+  background-color: #dbeafe !important; /* blue-100: light highlight background */
+  font-weight: 700 !important;
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+/* Dark Mode Matching Text */
+.dark .lda-dropdown-option-label span,
+.dark .lda-dropdown-option-label b {
+  color: #60a5fa !important; /* blue-400 */
+  background-color: rgba(37, 99, 235, 0.2) !important; /* subtle blue tint */
+  font-weight: 700 !important;
+}
+
+/* Ensure the text NOT being matched is still visible */
+.lda-dropdown-option-label {
+  color: var(--lda-text) !important;
+}
+
+/* Fix for the "No Match Found" text visibility */
+.lda-dropdown-option-no-match {
+  color: var(--lda-placeholder) !important;
+  background-color: transparent !important;
+}

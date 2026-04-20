@@ -53,6 +53,7 @@ export default function Home() {
               {"Cashier"}
             </p>
           </div>
+
           <ThemeSwitcher />
 
           <button

@@ -152,7 +152,7 @@ export default function SetupPage() {
 
             <div className="grid grid-cols-2 gap-3">
               {/* Age Field */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 hidden">
                 <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1">
                   Age
                 </label>
@@ -166,7 +166,7 @@ export default function SetupPage() {
                     type="number"
                     placeholder="25"
                     className={`${inputStyle("age")} pl-9`}
-                    value={formData.age}
+                    value={30}
                     onChange={(e) =>
                       setFormData({ ...formData, age: e.target.value })
                     }
@@ -175,9 +175,9 @@ export default function SetupPage() {
               </div>
 
               {/* Password Field */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 col-span-2">
                 <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1">
-                  Master Key
+                  Master Key(Password)
                 </label>
                 <div className="relative">
                   <Lock
@@ -194,6 +194,11 @@ export default function SetupPage() {
                       setFormData({ ...formData, password: e.target.value })
                     }
                   />
+                  {errors.password && (
+                    <p className="text-[10px] text-red-500 mt-1">
+                      {errors.password}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

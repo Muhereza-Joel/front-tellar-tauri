@@ -7,6 +7,9 @@ import { SyncTauriTheme } from "./components/SyncTauriTheme";
 import AuthGuard from "./components/guards/AuthGuard";
 import { AuthProvider } from "./context/AuthContext";
 import { PermissionSyncInitializer } from "./components/PermissionSyncInitializer";
+import LicenseGuard from "./components/LicenseGuard";
+import { NotificationProvider } from "./context/NotificationContext";
+import UpdateNotification from "./components/UpdateNotification";
 
 export const metadata: Metadata = {
   title: "FrontTela",
@@ -25,9 +28,14 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <SyncTauriTheme />
-          <AuthProvider>
-            <AuthGuard>{children}</AuthGuard>
-          </AuthProvider>
+          <NotificationProvider>
+            <LicenseGuard>
+              <AuthProvider>
+                <AuthGuard>{children}</AuthGuard>
+              </AuthProvider>
+            </LicenseGuard>
+            <UpdateNotification />
+          </NotificationProvider>
         </ThemeProvider>
         <PermissionSyncInitializer />
       </body>

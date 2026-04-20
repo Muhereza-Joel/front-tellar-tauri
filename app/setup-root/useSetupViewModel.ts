@@ -101,6 +101,14 @@ export function useSetupViewModel() {
     setLoading(true);
     setErrors({});
 
+    // --- NEW PASSWORD VALIDATION ---
+    if (formData.password.length < 8) {
+      setErrors({ password: "Password must be at least 8 characters long." });
+      setLoading(false);
+      return; // Stop execution
+    }
+    // -------------------------------
+
     try {
       const db = await getDatabase();
 
@@ -150,7 +158,7 @@ export function useSetupViewModel() {
         name: formData.name,
         email: formData.email,
         password: hashedPassword,
-        age: parseInt(formData.age),
+        age: 30,
         role_id: rootRoleId,
         tenant_id: tenantId,
         is_active: 1,

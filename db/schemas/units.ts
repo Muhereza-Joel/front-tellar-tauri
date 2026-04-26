@@ -3,6 +3,7 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const units = sqliteTable("units", {
   uuid: text().primaryKey().notNull().unique(),
+  branch_id: text(),
   name: text().notNull(),
   singular: text().notNull(),
   plural: text().notNull(),
@@ -16,4 +17,5 @@ export const units = sqliteTable("units", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

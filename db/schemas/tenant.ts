@@ -6,6 +6,7 @@ export const tenants = sqliteTable("tenants", {
   name: text().notNull(),
   code: text().notNull(),
   slug: text().notNull().unique(),
+  tenant_id: text(),
   created_at: text()
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

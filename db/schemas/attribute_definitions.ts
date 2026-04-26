@@ -11,6 +11,7 @@ export const attributeDefinitions = sqliteTable("attribute_definitions", {
 
   // The display name of the field (e.g., "Color", "Voltage", "Batch Number")
   label: text().notNull(),
+  branch_id: text(),
 
   // The type of input to show in the UI (e.g., "text", "number", "date", "select")
   fieldType: text().notNull().default("text"),
@@ -30,4 +31,5 @@ export const attributeDefinitions = sqliteTable("attribute_definitions", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

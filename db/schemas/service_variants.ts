@@ -3,6 +3,7 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const serviceVariants = sqliteTable("service_variants", {
   uuid: text().primaryKey().notNull(),
+  branch_id: text(),
   service_id: text().notNull(), // references services.uuid
   sku: text().unique(), // optional SKU for the variant
   name: text().notNull(), // e.g., "Standard", "Premium", "2 hours"
@@ -34,4 +35,5 @@ export const serviceVariants = sqliteTable("service_variants", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

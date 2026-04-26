@@ -3,6 +3,7 @@ import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const brands = sqliteTable("brands", {
   uuid: text().primaryKey().notNull().unique(),
+  branch_id: text(),
   name: text().notNull(),
   slug: text().notNull().unique(),
   description: text(),
@@ -14,4 +15,5 @@ export const brands = sqliteTable("brands", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

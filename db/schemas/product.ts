@@ -10,6 +10,7 @@ export const products = sqliteTable("products", {
   // 1. Primary Identification
   uuid: text().primaryKey().notNull(),
   sku: text().unique(),
+  branch_id: text(),
   barcode: text(),
 
   // 2. Core Info
@@ -49,6 +50,7 @@ export const products = sqliteTable("products", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text("deleted_at"),
+  sync_status: text().default("created"),
 });
 
 export type Product = InferSelectModel<typeof products>;

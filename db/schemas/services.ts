@@ -3,6 +3,7 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const services = sqliteTable("services", {
   uuid: text().primaryKey().notNull(),
+  branch_id: text(),
   name: text().notNull(),
   description: text(),
   category_id: text(), // can reference same categories table as products
@@ -43,4 +44,5 @@ export const services = sqliteTable("services", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

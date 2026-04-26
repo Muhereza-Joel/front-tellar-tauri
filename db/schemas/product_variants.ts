@@ -3,6 +3,7 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const productVariants = sqliteTable("product_variants", {
   uuid: text().primaryKey().notNull(),
+  branch_id: text(),
   product_id: text(),
   sku: text().unique(),
   barcode: text().unique(),
@@ -23,6 +24,7 @@ export const productVariants = sqliteTable("product_variants", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });
 
 export type ProductVariant = typeof productVariants.$inferSelect;

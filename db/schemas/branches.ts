@@ -20,4 +20,5 @@ export const branches = sqliteTable("branches", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

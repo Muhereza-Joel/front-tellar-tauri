@@ -3,6 +3,7 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const customers = sqliteTable("customers", {
   uuid: text().primaryKey().notNull().unique(),
+  branch_id: text(),
   first_name: text().notNull(),
   last_name: text().notNull(),
   date_of_birth: text(), // store as text (ISO string) or integer timestamp

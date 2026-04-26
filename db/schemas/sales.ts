@@ -3,6 +3,7 @@ import { sqliteTable, text, real } from "drizzle-orm/sqlite-core";
 
 export const sales = sqliteTable("sales", {
   uuid: text().primaryKey().notNull(),
+  branch_id: text(),
   customer_id: text(),
   type: text().notNull().default("DIRECT"), // DIRECT or INVOICE
   status: text().notNull().default("COMPLETED"),
@@ -16,10 +17,12 @@ export const sales = sqliteTable("sales", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });
 
 export const saleItems = sqliteTable("sale_items", {
   uuid: text().primaryKey().notNull(),
+  branch_id: text(),
   sale_id: text()
     .notNull()
     .references(() => sales.uuid),
@@ -36,4 +39,5 @@ export const saleItems = sqliteTable("sale_items", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

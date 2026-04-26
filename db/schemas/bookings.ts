@@ -3,6 +3,7 @@ import { sqliteTable, text, real } from "drizzle-orm/sqlite-core";
 
 export const appointments = sqliteTable("bookings", {
   uuid: text().primaryKey().notNull(),
+  branch_id: text(),
   service_id: text().notNull(), // which service
   variant_id: text(), // optional variant
   customer_id: text(), // reference to your customers table
@@ -20,4 +21,5 @@ export const appointments = sqliteTable("bookings", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

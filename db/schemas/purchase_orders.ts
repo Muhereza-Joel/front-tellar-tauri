@@ -4,6 +4,7 @@ import { sqliteTable, text, real, integer } from "drizzle-orm/sqlite-core";
 // 1. Purchase Orders (Header)
 export const purchaseOrders = sqliteTable("purchase_orders", {
   uuid: text().primaryKey().notNull().unique(),
+  branch_id: text(),
   po_number: text().notNull().unique(), // e.g., PO-2024-001
   vendor_uuid: text().notNull(),
   vendor_name: text().notNull(),
@@ -31,6 +32,7 @@ export const purchaseOrders = sqliteTable("purchase_orders", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });
 
 // 2. Purchase Order Items (Lines)
@@ -58,6 +60,7 @@ export const purchaseOrderItems = sqliteTable("purchase_order_items", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });
 
 // Optional: Types for use in ViewModels

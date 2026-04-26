@@ -4,6 +4,7 @@ import { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
 export const suppliers = sqliteTable("suppliers", {
   uuid: text().primaryKey().notNull(),
+  branch_id: text(),
   // Identification & Details
   name: text().notNull(),
   contact_person: text(),
@@ -49,6 +50,7 @@ export const suppliers = sqliteTable("suppliers", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });
 
 export type Supplier = InferSelectModel<typeof suppliers>;

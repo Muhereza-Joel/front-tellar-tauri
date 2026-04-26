@@ -6,7 +6,12 @@ import { getJwt } from "../lib/license";
 import { useNotification } from "../hooks/useNotification";
 import { RefreshCw, Loader2, ChevronDown } from "lucide-react";
 
-const SYNCABLE_TABLES = ["tenants", "customers"] as const;
+const SYNCABLE_TABLES = [
+  "tenants",
+  "local_roles",
+  "local_users",
+  "customers",
+] as const;
 type TableName = (typeof SYNCABLE_TABLES)[number];
 
 interface SyncResult {

@@ -76,6 +76,8 @@ pub fn run() {
             // List of tables to sync (adjust to your actual tables)
             let tables = vec![
                 "tenants".to_string(),
+                "local_roles".to_string(),
+                "local_users".to_string(),
                 "customers".to_string(),
             ];
 

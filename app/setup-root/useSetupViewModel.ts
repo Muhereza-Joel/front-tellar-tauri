@@ -66,6 +66,7 @@ function generateAllPermissions(roleId: string, tenantId: string): any[] {
         tenant_id: tenantId,
         created_at: now,
         updated_at: now,
+        sync_status: "created",
       });
     }
   }
@@ -134,7 +135,7 @@ export function useSetupViewModel() {
         tenant_id: tenantId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        sync_status: "updated",
+        sync_status: "created",
       });
 
       // 3. Create root_admin role with tenant_id
@@ -145,6 +146,7 @@ export function useSetupViewModel() {
         tenant_id: tenantId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        sync_status: "created",
       });
 
       // 4. Assign all permissions to this role
@@ -165,6 +167,7 @@ export function useSetupViewModel() {
         tenant_id: tenantId,
         is_active: 1,
         is_email_verified: 1,
+        sync_status: "created",
       });
 
       // 6. Mark setup as complete

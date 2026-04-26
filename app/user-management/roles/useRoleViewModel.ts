@@ -32,15 +32,19 @@ export function useRoleViewModel() {
   }, []);
 
   const loadRoles = async () => {
-    if (!db) return;
-    setLoading(true);
-    try {
-      const results = await db.query.roles.findMany();
-      setRolesList(results);
-    } finally {
-      setTimeout(() => setLoading(false), 500);
-    }
-  };
+  if (!db) return;
+  setLoading(true);
+
+  try {
+    const results = await db.query.roles.findMany({
+      where: (rolesTable: any, { isNull }: any) => isNull(rolesTable.deleted_at),
+    });
+
+    setRolesList(results);
+  } finally {
+    setTimeout(() => setLoading(false), 500);
+  }
+};
 
   useEffect(() => {
     if (db) loadRoles();
@@ -55,6 +59,7 @@ export function useRoleViewModel() {
 
       const payload: any = {
         name: valid.name,
+        sync_status: "updated",
         updated_at: new Date().toISOString(),
       };
 
@@ -98,17 +103,27 @@ export function useRoleViewModel() {
 
   const deleteRole = async (uuid: string) => {
     if (!db) return;
+
     const [targetRole] = await db
       .select()
       .from(roles)
       .where(eq(roles.uuid, uuid))
       .limit(1);
+
     if (targetRole && targetRole.name === "root_admin") {
       setErrors({ name: "The root_admin role cannot be deleted" });
       setTimeout(() => setErrors({}), 3000);
       return;
     }
-    await db.delete(roles).where(eq(roles.uuid, uuid));
+
+    await db
+      .update(roles)
+      .set({
+        sync_status: "deleted",
+        deleted_at: new Date().toISOString(),
+      })
+      .where(eq(roles.uuid, uuid));
+
     loadRoles();
   };
 

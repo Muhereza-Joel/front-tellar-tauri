@@ -2,7 +2,6 @@
 
 import {
   Edit2,
-  Trash2,
   UserPlus,
   Mail,
   Phone,
@@ -15,6 +14,7 @@ import {
 import { useCustomerViewModel } from "./useCustomerViewModel";
 import { FormSkeleton, TableRowSkeleton } from "../components/Skeletons";
 import { Pagination } from "../components/Pagination";
+import ConfirmDeleteButton from "../components/ConfirmDeleteButton";
 
 export default function CustomerManagementPage() {
   const {
@@ -357,12 +357,14 @@ export default function CustomerManagementPage() {
                           >
                             <Edit2 size={16} />
                           </button>
-                          <button
-                            onClick={() => deleteCustomer(customer.uuid)}
-                            className="p-2 text-zinc-400 hover:text-red-500"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+
+                          <ConfirmDeleteButton
+                            onConfirm={() => deleteCustomer(customer.uuid)}
+                            itemName={`${customer.first_name} ${customer.last_name}`}
+                            title="Delete Customer"
+                            confirmText="Delete"
+                            cancelText="Cancel"
+                          />
                         </div>
                       </td>
                     </tr>

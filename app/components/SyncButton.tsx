@@ -3,13 +3,8 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getJwt } from "../lib/license";
-import {
-  RefreshCw,
-  Loader2,
-  ChevronDown,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { useNotification } from "../hooks/useNotification";
+import { RefreshCw, Loader2, ChevronDown } from "lucide-react";
 
 const SYNCABLE_TABLES = ["tenants", "customers"] as const;
 type TableName = (typeof SYNCABLE_TABLES)[number];
@@ -32,15 +27,13 @@ const setStoredTimestamp = (key: string, timestamp: number) => {
 export function SyncButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<{
-    type: "success" | "error";
-    msg: string;
-  } | null>(null);
   const [unsyncedCounts, setUnsyncedCounts] = useState<Record<string, number>>(
     {},
   );
 
-  // Fetch unsynced counts from backend
+  // Initialize the notification hook
+  const { success, error } = useNotification();
+
   const fetchUnsyncedCounts = async () => {
     try {
       const counts = await invoke<Record<string, number>>(
@@ -52,7 +45,6 @@ export function SyncButton() {
     }
   };
 
-  // Initial fetch and periodic refresh (every 30 seconds)
   useEffect(() => {
     fetchUnsyncedCounts();
     const interval = setInterval(fetchUnsyncedCounts, 30000);
@@ -61,7 +53,6 @@ export function SyncButton() {
 
   const performSync = async (tableName: TableName | "all") => {
     setLoading(true);
-    setStatus(null);
     setIsOpen(false);
 
     try {
@@ -95,24 +86,21 @@ export function SyncButton() {
       }
 
       if (result.success) {
-        setStatus({ type: "success", msg: result.message });
-        // Refresh counts after successful sync
+        // Use notification hook for success
+        success(result.message);
         await fetchUnsyncedCounts();
       } else {
-        setStatus({ type: "error", msg: result.message });
+        // Use notification hook for server-side error
+        error(result.message);
       }
     } catch (err: any) {
-      setStatus({
-        type: "error",
-        msg: err.message || "Sync failed unexpectedly",
-      });
+      // Use notification hook for catch block
+      error(err.message || "Sync failed unexpectedly");
     } finally {
       setLoading(false);
-      setTimeout(() => setStatus(null), 5000);
     }
   };
 
-  // Compute total unsynced count
   const totalUnsynced = Object.values(unsyncedCounts).reduce(
     (sum, c) => sum + c,
     0,
@@ -171,25 +159,6 @@ export function SyncButton() {
                 </button>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {status && (
-        <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-right-5">
-          <div
-            className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${
-              status.type === "success"
-                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-            }`}
-          >
-            {status.type === "success" ? (
-              <CheckCircle className="h-5 w-5" />
-            ) : (
-              <XCircle className="h-5 w-5" />
-            )}
-            <span className="text-sm">{status.msg}</span>
           </div>
         </div>
       )}

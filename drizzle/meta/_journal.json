@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1777209234825,
+      "tag": "0000_chubby_george_stacy",
+      "breakpoints": true
+    }
+  ]
+}

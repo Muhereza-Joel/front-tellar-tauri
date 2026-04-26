@@ -131,8 +131,10 @@ export function useSetupViewModel() {
         name: formData.organization,
         code: code,
         slug: slug,
+        tenant_id: tenantId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        sync_status: "updated",
       });
 
       // 3. Create root_admin role with tenant_id

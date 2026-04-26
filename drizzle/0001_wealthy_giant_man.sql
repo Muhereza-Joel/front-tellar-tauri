@@ -1,1 +1,0 @@
-ALTER TABLE `tenants` ADD `sync_status` text DEFAULT 'created';

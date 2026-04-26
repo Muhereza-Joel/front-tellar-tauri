@@ -1,1 +1,0 @@
-ALTER TABLE `customers` ADD `sync_status` text DEFAULT 'created';

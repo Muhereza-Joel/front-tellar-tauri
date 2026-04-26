@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import ThemeSwitcher from "./components/ThemeSwitcher";
+import { SyncButton } from "./components/SyncButton";
 
 export default function Home() {
   const { logout, hasPermission } = useAuth();
@@ -54,6 +55,7 @@ export default function Home() {
             </p>
           </div>
 
+          <SyncButton />
           <ThemeSwitcher />
 
           <button

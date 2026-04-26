@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../hooks/usePagination";
+import { useAuth } from "../context/AuthContext";
 
 const customerSchema = yup.object({
   first_name: yup.string().required("First name is required"),
@@ -41,6 +42,7 @@ const customerSchema = yup.object({
 });
 
 export function useCustomerViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [customersList, setCustomersList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,13 +122,16 @@ export function useCustomerViewModel() {
           .set({
             ...valid,
             // Ensure boolean is handled correctly for SQLite/Drizzle if necessary
+            sync_status: "updated",
             is_active: valid.is_active ? true : false,
+            updated_at: new Date().toISOString(),
           })
           .where(eq(customers.uuid, editingUuid));
       } else {
         await db.insert(customers).values({
           uuid: uuidv7(),
           ...valid,
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -148,7 +153,7 @@ export function useCustomerViewModel() {
     if (!db) return;
     await db
       .update(customers)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(customers.uuid, uuid));
     loadData();
   };

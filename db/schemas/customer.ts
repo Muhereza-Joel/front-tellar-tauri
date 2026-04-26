@@ -26,4 +26,5 @@ export const customers = sqliteTable("customers", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   deleted_at: text(),
+  sync_status: text().default("created"),
 });

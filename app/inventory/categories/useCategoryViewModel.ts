@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const categorySchema = yup.object({
   name: yup.string().required("Category name is required"),
@@ -17,6 +18,7 @@ const categorySchema = yup.object({
 });
 
 export function useCategoryViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,12 +79,14 @@ export function useCategoryViewModel() {
       if (editingUuid) {
         await db
           .update(categories)
-          .set(valid)
+          .set(valid, { sync_status: "updated" })
           .where(eq(categories.uuid, editingUuid));
       } else {
         await db.insert(categories).values({
           uuid: uuidv7(),
           ...valid,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -104,7 +108,7 @@ export function useCategoryViewModel() {
     if (!db) return;
     await db
       .update(categories)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(categories.uuid, uuid));
     loadData();
   };

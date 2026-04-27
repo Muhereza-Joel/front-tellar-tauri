@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const productSchema = yup.object({
   name: yup.string().required("Name is required"),
@@ -43,6 +44,7 @@ const productSchema = yup.object({
 });
 
 export function useProductViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [productsList, setProductsList] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
@@ -166,12 +168,14 @@ export function useProductViewModel() {
       if (editingUuid) {
         await db
           .update(products)
-          .set(valid)
+          .set(valid, { sync_status: "updated" })
           .where(eq(products.uuid, editingUuid));
       } else {
         await db.insert(products).values({
           uuid: uuidv7(),
           ...valid,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -246,7 +250,7 @@ export function useProductViewModel() {
     deleteProduct: async (uuid: string) => {
       await db
         .update(products)
-        .set({ deleted_at: new Date().toISOString() })
+        .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
         .where(eq(products.uuid, uuid));
       loadData();
     },

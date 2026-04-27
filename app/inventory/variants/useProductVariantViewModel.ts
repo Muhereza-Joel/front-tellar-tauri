@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const variantSchema = yup.object({
   product_id: yup.string().required("Select a base product"),
@@ -31,6 +32,7 @@ const variantSchema = yup.object({
 });
 
 export function useProductVariantViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [variantsList, setVariantsList] = useState<any[]>([]);
   const [productsList, setProductsList] = useState<any[]>([]);
@@ -126,12 +128,14 @@ export function useProductVariantViewModel() {
       if (editingUuid) {
         await db
           .update(productVariants)
-          .set({ ...valid, updated_at: now })
+          .set({ ...valid, updated_at: now, sync_status: "updated" })
           .where(eq(productVariants.uuid, editingUuid));
       } else {
         await db.insert(productVariants).values({
           uuid: uuidv7(),
           ...valid,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: now,
           updated_at: now,
         });
@@ -190,7 +194,7 @@ export function useProductVariantViewModel() {
     deleteVariant: async (id: string) => {
       await db
         .update(productVariants)
-        .set({ deleted_at: new Date().toISOString() })
+        .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
         .where(eq(productVariants.uuid, id));
       await loadData();
     },

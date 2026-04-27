@@ -14,6 +14,7 @@ import { eq, sql, isNull, desc, SQLWrapper, AnyColumn } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 // Validation schema for Purchase Order header
 const purchaseOrderSchema = yup.object({
@@ -44,6 +45,7 @@ const purchaseOrderItemSchema = yup.object({
 });
 
 export function usePurchaseOrderViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -359,7 +361,7 @@ export function usePurchaseOrderViewModel() {
             subtotal: totals.subtotal,
             tax_amount: 0,
             total_amount: totals.total, // Use totals.total from your useMemo
-
+            sync_status: "updated",
             notes: formData.notes || null,
             updated_at: now,
           })
@@ -367,7 +369,12 @@ export function usePurchaseOrderViewModel() {
 
         // Delete old items
         await db
-          .delete(purchaseOrderItems)
+          .update(purchaseOrderItems)
+          .set({
+            sync_status: "deleted",
+            updated_at: now,
+            deleted_at: new Date().toISOString(),
+          })
           .where(eq(purchaseOrderItems.purchase_order_uuid, editingUuid));
 
         // Insert new items
@@ -382,6 +389,7 @@ export function usePurchaseOrderViewModel() {
             received_quantity: 0,
             unit_price: item.unit_price,
             // Ensure total_price per line item is also calculated
+            sync_status: "created",
             total_price: (item.quantity || 0) * (item.unit_price || 0),
             created_at: now,
             updated_at: now,
@@ -402,6 +410,8 @@ export function usePurchaseOrderViewModel() {
           tax_amount: 0,
           total_amount: totals.subtotal,
           notes: formData.notes || null,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: now,
           updated_at: now,
         });
@@ -417,6 +427,8 @@ export function usePurchaseOrderViewModel() {
             received_quantity: 0,
             unit_price: item.unit_price,
             total_price: (item.quantity || 0) * (item.unit_price || 0),
+            sync_status: "created",
+            tenant_id: getTenantId(),
             created_at: now,
             updated_at: now,
           });
@@ -451,7 +463,7 @@ export function usePurchaseOrderViewModel() {
     try {
       await db
         .update(purchaseOrders)
-        .set({ deleted_at: new Date().toISOString() })
+        .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
         .where(eq(purchaseOrders.uuid, uuid));
       await loadPurchaseOrders();
     } catch (error) {

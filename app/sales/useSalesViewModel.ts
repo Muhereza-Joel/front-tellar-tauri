@@ -10,6 +10,7 @@ import { units } from "../../db/schemas/units"; // <-- import units table
 import { eq, isNull, desc, and, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import * as yup from "yup";
+import { useAuth } from "../context/AuthContext";
 
 interface CartItem {
   product_id: string;
@@ -43,6 +44,7 @@ const saleValidationSchema = yup.object({
 });
 
 export function useSalesViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [salesList, setSalesList] = useState<SaleWithDetails[]>([]);
@@ -351,7 +353,8 @@ export function useSalesViewModel() {
         status: saleStatus,
         total_amount: totalAmount,
         amount_paid: amountPaid,
-        tenant_id: null,
+        tenant_id: getTenantId(),
+        sync_status: "created",
         created_at: now,
         updated_at: now,
       });
@@ -364,7 +367,8 @@ export function useSalesViewModel() {
           quantity: item.quantity,
           unit_price: item.unit_price,
           subtotal: item.subtotal,
-          tenant_id: null,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: now,
           updated_at: now,
         });
@@ -390,6 +394,7 @@ export function useSalesViewModel() {
     await db
       .update(sales)
       .set({
+        sync_status: "updated",
         amount_paid: newAmountPaid,
         updated_at: new Date().toISOString(),
         status:

@@ -142,6 +142,7 @@ export function useUserViewModel() {
         age: valid.age,
         role_id: valid.role_id,
         tenant_id: tenantId,
+        sync_status: "updated",
         updated_at: now,
       };
 
@@ -162,6 +163,7 @@ export function useUserViewModel() {
           ...userData,
           is_email_verified: 0,
           is_active: 1,
+          sync_status: "created",
           created_at: now,
         });
       }
@@ -191,7 +193,7 @@ export function useUserViewModel() {
     }
     await db
       .update(users)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(users.uuid, uuid));
     loadData();
   };

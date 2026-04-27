@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const attributeSchema = yup.object({
   label: yup.string().required("Label is required"),
@@ -28,6 +29,7 @@ const attributeSchema = yup.object({
 });
 
 export function useAttributeViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [attributesList, setAttributesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,12 +92,14 @@ export function useAttributeViewModel() {
       if (editingUuid) {
         await db
           .update(attributeDefinitions)
-          .set(valid)
+          .set(valid, { sync_status: "updated" })
           .where(eq(attributeDefinitions.uuid, editingUuid));
       } else {
         await db.insert(attributeDefinitions).values({
           uuid: uuidv7(),
           ...valid,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -133,7 +137,7 @@ export function useAttributeViewModel() {
     if (!db) return;
     await db
       .update(attributeDefinitions)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(attributeDefinitions.uuid, uuid));
     loadData();
   };

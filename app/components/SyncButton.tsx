@@ -11,6 +11,21 @@ const SYNCABLE_TABLES = [
   "local_roles",
   "local_users",
   "customers",
+  "services",
+  "service_variants",
+  "brands",
+  "units",
+  "categories",
+  "products",
+  "attribute_definitions",
+  "product_variants",
+  "branches",
+  "purchase_orders",
+  "purchase_order_items",
+  "suppliers",
+  "sales",
+  "sale_items",
+  // Add more as your schema grows...
 ] as const;
 type TableName = (typeof SYNCABLE_TABLES)[number];
 
@@ -36,7 +51,6 @@ export function SyncButton() {
     {},
   );
 
-  // Initialize the notification hook
   const { success, error } = useNotification();
 
   const fetchUnsyncedCounts = async () => {
@@ -91,15 +105,12 @@ export function SyncButton() {
       }
 
       if (result.success) {
-        // Use notification hook for success
         success(result.message);
         await fetchUnsyncedCounts();
       } else {
-        // Use notification hook for server-side error
         error(result.message);
       }
     } catch (err: any) {
-      // Use notification hook for catch block
       error(err.message || "Sync failed unexpectedly");
     } finally {
       setLoading(false);
@@ -110,6 +121,18 @@ export function SyncButton() {
     (sum, c) => sum + c,
     0,
   );
+
+  // --- Layout Logic for 8 items per column ---
+  const ITEMS_PER_COL = 8;
+  const columnCount = Math.ceil(SYNCABLE_TABLES.length / ITEMS_PER_COL);
+
+  // Dynamic CSS classes based on column count
+  const gridColsClass =
+    columnCount === 1
+      ? "grid-cols-1 w-56"
+      : columnCount === 2
+        ? "grid-cols-2 w-[28rem]"
+        : "grid-cols-3 w-[42rem]";
 
   return (
     <div className="relative">
@@ -124,40 +147,53 @@ export function SyncButton() {
           <RefreshCw className="h-4 w-4" />
         )}
         <span>Sync</span>
-        <ChevronDown className="h-4 w-4" />
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
         {totalUnsynced > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center border-2 border-white dark:border-zinc-950">
             {totalUnsynced}
           </span>
         )}
       </button>
 
       {isOpen && !loading && (
-        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50">
-          <div className="py-1">
+        <div
+          className={`absolute right-0 mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden ${gridColsClass}`}
+        >
+          {/* Main Action Header */}
+          <div className="col-span-full bg-zinc-50/50 dark:bg-zinc-800/50 border-b border-zinc-100 dark:border-zinc-800">
             <button
               onClick={() => performSync("all")}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex justify-between items-center"
+              className="w-full text-left px-4 py-3 text-sm font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-colors flex justify-between items-center"
             >
-              <span>Sync All Tables</span>
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Sync Everything</span>
+              </div>
               {totalUnsynced > 0 && (
-                <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 text-xs px-2 py-0.5 rounded-full">
-                  {totalUnsynced}
+                <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full">
+                  {totalUnsynced} Pending
                 </span>
               )}
             </button>
-            <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
+          </div>
+
+          {/* Dynamic Grid of Individual Tables */}
+          <div className={`grid ${gridColsClass.split(" ")[0]} gap-x-1 p-2`}>
             {SYNCABLE_TABLES.map((table) => {
               const tableCount = unsyncedCounts[table] || 0;
               return (
                 <button
                   key={table}
                   onClick={() => performSync(table)}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors capitalize flex justify-between items-center"
+                  className="group flex justify-between items-center px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all"
                 >
-                  <span>{table.replace("_", " ")}</span>
+                  <span className="capitalize group-hover:text-zinc-900 dark:group-hover:text-zinc-100 truncate pr-2">
+                    {table.replace("_", " ")}
+                  </span>
                   {tableCount > 0 && (
-                    <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 text-xs px-2 py-0.5 rounded-full">
+                    <span className="bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-[10px] px-1.5 py-0.5 rounded font-medium border border-red-100 dark:border-red-900/50">
                       {tableCount}
                     </span>
                   )}

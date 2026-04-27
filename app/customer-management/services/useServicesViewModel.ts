@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const serviceSchema = yup.object({
   name: yup.string().required("Service name is required"),
@@ -33,6 +34,7 @@ const serviceSchema = yup.object({
 });
 
 export function useServicesViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [servicesList, setServicesList] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
@@ -167,10 +169,21 @@ export function useServicesViewModel() {
       if (editingUuid) {
         await db
           .update(services)
-          .set({ ...payload, updated_at: new Date().toISOString() })
+          .set({
+            ...payload,
+            updated_at: new Date().toISOString(),
+            sync_status: "updated",
+          })
           .where(eq(services.uuid, editingUuid));
       } else {
-        await db.insert(services).values({ uuid: uuidv7(), ...payload });
+        await db
+          .insert(services)
+          .values({
+            uuid: uuidv7(),
+            ...payload,
+            tenant_id: getTenantId(),
+            sync_status: "created",
+          });
       }
       resetForm();
       loadData();

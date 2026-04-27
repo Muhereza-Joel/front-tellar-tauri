@@ -79,6 +79,20 @@ pub fn run() {
                 "local_roles".to_string(),
                 "local_users".to_string(),
                 "customers".to_string(),
+                "services".to_string(),
+                "service_variants".to_string(),
+                "brands".to_string(),
+                "units".to_string(),
+                "categories".to_string(),
+                "products".to_string(),
+                "attribute_definitions".to_string(),
+                "product_variants".to_string(),
+                "branches".to_string(),
+                "purchase_orders".to_string(),
+                "purchase_order_items".to_string(),
+                "suppliers".to_string(),
+                "sales".to_string(),
+                "sale_items".to_string(),
             ];
 
             let api_url = "https://api.famkonect.com/api/v1".to_string(); // change to your server URL

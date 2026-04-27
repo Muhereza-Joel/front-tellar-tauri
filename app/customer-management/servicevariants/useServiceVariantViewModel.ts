@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const variantSchema = yup.object({
   name: yup.string().required("Variant name is required"),
@@ -31,6 +32,7 @@ const variantSchema = yup.object({
 });
 
 export function useServiceVariantViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [variantsList, setVariantsList] = useState<any[]>([]);
   const [servicesList, setServicesList] = useState<any[]>([]);
@@ -109,6 +111,7 @@ export function useServiceVariantViewModel() {
 
       const payload = {
         ...valid,
+        sync_status: "updated",
         absolute_price: valid.absolute_price
           ? Number(valid.absolute_price)
           : null,
@@ -133,6 +136,8 @@ export function useServiceVariantViewModel() {
         await db.insert(serviceVariants).values({
           uuid: uuidv7(),
           ...payload,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -154,7 +159,7 @@ export function useServiceVariantViewModel() {
     if (!db) return;
     await db
       .update(serviceVariants)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(serviceVariants.uuid, uuid));
     loadData();
   };

@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const supplierSchema = yup.object({
   name: yup.string().required("Supplier name is required"),
@@ -43,6 +44,7 @@ const supplierSchema = yup.object({
 });
 
 export function useSupplierViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [suppliersList, setSuppliersList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,12 +127,14 @@ export function useSupplierViewModel() {
       if (editingUuid) {
         await db
           .update(suppliers)
-          .set(valid)
+          .set(valid, { sync_status: "updated" })
           .where(eq(suppliers.uuid, editingUuid));
       } else {
         await db.insert(suppliers).values({
           uuid: uuidv7(),
           ...valid,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -152,7 +156,7 @@ export function useSupplierViewModel() {
     if (!db) return;
     await db
       .update(suppliers)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(suppliers.uuid, uuid));
     loadData();
   };

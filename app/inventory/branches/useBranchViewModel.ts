@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const branchSchema = yup.object({
   name: yup.string().required("Branch name is required"),
@@ -40,6 +41,7 @@ const branchSchema = yup.object({
 });
 
 export function useBranchViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [branchesList, setBranchesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,12 +109,14 @@ export function useBranchViewModel() {
       if (editingUuid) {
         await db
           .update(branches)
-          .set(valid)
+          .set(valid, { sync_status: "updated" })
           .where(eq(branches.uuid, editingUuid));
       } else {
         await db.insert(branches).values({
           uuid: uuidv7(),
           ...valid,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -134,7 +138,7 @@ export function useBranchViewModel() {
     if (!db) return;
     await db
       .update(branches)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(branches.uuid, uuid));
     loadData();
   };

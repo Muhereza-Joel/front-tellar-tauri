@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
+import { useAuth } from "../../context/AuthContext";
 
 const brandSchema = yup.object({
   name: yup.string().required("Brand name is required"),
@@ -21,6 +22,7 @@ const brandSchema = yup.object({
 });
 
 export function useBrandViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [brandsList, setBrandsList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,11 +80,16 @@ export function useBrandViewModel() {
       const valid = await brandSchema.validate(formData, { abortEarly: false });
 
       if (editingUuid) {
-        await db.update(brands).set(valid).where(eq(brands.uuid, editingUuid));
+        await db
+          .update(brands)
+          .set(valid, { sync_status: "updated" })
+          .where(eq(brands.uuid, editingUuid));
       } else {
         await db.insert(brands).values({
           uuid: uuidv7(),
           ...valid,
+          sync_status: "created",
+          tenant_id: getTenantId(),
           created_at: new Date().toISOString(),
         });
       }
@@ -104,7 +111,7 @@ export function useBrandViewModel() {
     if (!db) return;
     await db
       .update(brands)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(brands.uuid, uuid));
     loadData();
   };

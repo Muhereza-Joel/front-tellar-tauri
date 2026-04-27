@@ -83,7 +83,7 @@ export function useUnitViewModel() {
       if (editingUuid) {
         await db
           .update(units)
-          .set(valid, { sync_status: "deleted" })
+          .set({ ...valid, sync_status: "updated" })
           .where(eq(units.uuid, editingUuid));
       } else {
         await db.insert(units).values({
@@ -112,7 +112,7 @@ export function useUnitViewModel() {
     if (!db) return;
     await db
       .update(units)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(units.uuid, uuid));
     loadData();
   };

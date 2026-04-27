@@ -132,6 +132,7 @@ export function useCustomerViewModel() {
           uuid: uuidv7(),
           ...valid,
           tenant_id: getTenantId(),
+          sync_status: "created",
           created_at: new Date().toISOString(),
         });
       }

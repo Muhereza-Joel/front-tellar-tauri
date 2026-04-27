@@ -168,7 +168,7 @@ export function useProductViewModel() {
       if (editingUuid) {
         await db
           .update(products)
-          .set(valid, { sync_status: "updated" })
+          .set({ ...valid, sync_status: "updated" })
           .where(eq(products.uuid, editingUuid));
       } else {
         await db.insert(products).values({

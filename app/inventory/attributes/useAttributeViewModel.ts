@@ -92,7 +92,7 @@ export function useAttributeViewModel() {
       if (editingUuid) {
         await db
           .update(attributeDefinitions)
-          .set(valid, { sync_status: "updated" })
+          .set({ ...valid, sync_status: "updated" })
           .where(eq(attributeDefinitions.uuid, editingUuid));
       } else {
         await db.insert(attributeDefinitions).values({

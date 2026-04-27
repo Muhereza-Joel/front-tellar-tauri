@@ -176,14 +176,12 @@ export function useServicesViewModel() {
           })
           .where(eq(services.uuid, editingUuid));
       } else {
-        await db
-          .insert(services)
-          .values({
-            uuid: uuidv7(),
-            ...payload,
-            tenant_id: getTenantId(),
-            sync_status: "created",
-          });
+        await db.insert(services).values({
+          uuid: uuidv7(),
+          ...payload,
+          tenant_id: getTenantId(),
+          sync_status: "created",
+        });
       }
       resetForm();
       loadData();
@@ -204,7 +202,7 @@ export function useServicesViewModel() {
     if (!db) return;
     await db
       .update(services)
-      .set({ deleted_at: new Date().toISOString() })
+      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
       .where(eq(services.uuid, uuid));
     loadData();
   };

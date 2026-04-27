@@ -82,7 +82,7 @@ export function useBrandViewModel() {
       if (editingUuid) {
         await db
           .update(brands)
-          .set(valid, { sync_status: "updated" })
+          .set({ ...valid, sync_status: "updated" })
           .where(eq(brands.uuid, editingUuid));
       } else {
         await db.insert(brands).values({

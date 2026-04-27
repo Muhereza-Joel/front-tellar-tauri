@@ -127,7 +127,7 @@ export function useSupplierViewModel() {
       if (editingUuid) {
         await db
           .update(suppliers)
-          .set(valid, { sync_status: "updated" })
+          .set({ ...valid, sync_status: "updated" })
           .where(eq(suppliers.uuid, editingUuid));
       } else {
         await db.insert(suppliers).values({

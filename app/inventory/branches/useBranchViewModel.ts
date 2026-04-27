@@ -109,7 +109,7 @@ export function useBranchViewModel() {
       if (editingUuid) {
         await db
           .update(branches)
-          .set(valid, { sync_status: "updated" })
+          .set({ ...valid, sync_status: "updated" })
           .where(eq(branches.uuid, editingUuid));
       } else {
         await db.insert(branches).values({

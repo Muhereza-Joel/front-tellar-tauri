@@ -79,7 +79,7 @@ export function useCategoryViewModel() {
       if (editingUuid) {
         await db
           .update(categories)
-          .set(valid, { sync_status: "updated" })
+          .set({ ...valid, sync_status: "updated" })
           .where(eq(categories.uuid, editingUuid));
       } else {
         await db.insert(categories).values({

@@ -52,6 +52,8 @@ pub struct SyncChanges {
     pub created: Vec<serde_json::Value>,
     pub updated: Vec<serde_json::Value>,
     pub deleted: Vec<String>, // UUIDs
+    pub has_more: Option<bool>,       
+    pub current_page: Option<i32>,   
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -83,43 +85,95 @@ impl SyncEngine {
     // -------------------------------------------------------------------------
     // Public: sync all tables
     // -------------------------------------------------------------------------
-    pub async fn synchronize(&self, jwt: &str, last_pulled_at: Option<i64>) -> Result<i64> {
-        let pull_response = self.pull_remote_changes(jwt, last_pulled_at).await?;
-        self.apply_remote_changes(&pull_response.changes).await?;
+    pub async fn synchronize(&self, jwt: &str, tenant_uuid: &str, last_pulled_at: Option<i64>) -> Result<i64> {
+    let mut current_page = 1;
+    let mut final_timestamp = 0;
+
+        loop {
+            // 1. Pull the specific page
+            let pull_response = self.pull_remote_changes(jwt, tenant_uuid, last_pulled_at, Some(current_page)).await?;
+            
+            // Use the timestamp from the first page as the anchor for the next sync
+            if current_page == 1 {
+                final_timestamp = pull_response.timestamp;
+            }
+
+            // 2. Apply changes immediately for this page
+            self.apply_remote_changes(&pull_response.changes).await?;
+
+            // 3. Check if any table in the response has more pages
+            let any_more = pull_response.changes.values().any(|c| c.has_more.unwrap_or(false));
+            
+            if !any_more {
+                break; // Exit loop if all tables are exhausted
+            }
+            
+            current_page += 1;
+        }
+
+        // 4. Handle pushing local changes (same as before)
         let local_changes = self.collect_local_changes().await?;
         if !local_changes.is_empty() {
-            self.push_local_changes(jwt, local_changes).await?;
+            self.push_local_changes(jwt, tenant_uuid, local_changes).await?;
             self.mark_as_synced().await?;
         }
-        Ok(pull_response.timestamp)
+
+        Ok(final_timestamp)
     }
 
     // -------------------------------------------------------------------------
     // Public: sync a single table
     // -------------------------------------------------------------------------
-    pub async fn synchronize_table(&self, jwt: &str, table_name: &str, last_pulled_at: Option<i64>) -> Result<i64> {
-        // Pull only changes for this table
-        
-        let pull_response = self.pull_remote_changes_for_table(jwt, table_name, last_pulled_at).await?;
-        // Apply only this table's changes
-        self.apply_remote_changes_for_table(&pull_response.changes, table_name).await?;
+    pub async fn synchronize_table(&self, jwt: &str, tenant_uuid: &str, table_name: &str, last_pulled_at: Option<i64>) -> Result<i64> {
+        let mut current_page = 1;
+        let mut final_timestamp = 0;
 
-        // Collect and push local changes for this table
+        loop {
+            // 1. Pull only changes for this table and specific page
+            let pull_response = self.pull_remote_changes_for_table(
+                jwt, 
+                tenant_uuid, 
+                table_name, 
+                last_pulled_at, 
+                Some(current_page)
+            ).await?;
+            
+            // Capture the server timestamp from the first page to return for next sync
+            if current_page == 1 {
+                final_timestamp = pull_response.timestamp;
+            }
+
+            // 2. Apply only this table's changes for the current page
+            self.apply_remote_changes_for_table(&pull_response.changes, table_name).await?;
+
+            // 3. Check if the specific table has more pages to fetch
+            let has_more = pull_response.changes.get(table_name)
+                .and_then(|c| c.has_more)
+                .unwrap_or(false);
+
+            if !has_more {
+                break;
+            }
+            
+            current_page += 1;
+        }
+
+        // 4. Collect and push local changes for this table (performed once after all remote pages are applied)
         let local_changes = self.collect_local_changes_for_table(table_name).await?;
         if !local_changes.created.is_empty() || !local_changes.updated.is_empty() || !local_changes.deleted.is_empty() {
             let mut changes = HashMap::new();
             changes.insert(table_name.to_string(), local_changes);
-            self.push_local_changes(jwt, changes).await?;
+            self.push_local_changes(jwt, tenant_uuid, changes).await?;
             self.mark_table_as_synced(table_name).await?;
         }
 
-        Ok(pull_response.timestamp)
+        Ok(final_timestamp)
     }
 
     // -------------------------------------------------------------------------
     // Pull (all tables)
     // -------------------------------------------------------------------------
-    async fn pull_remote_changes(&self, jwt: &str, last_pulled_at: Option<i64>) -> Result<PullResponse> {
+    async fn pull_remote_changes(&self, jwt: &str, tenant_uuid: &str, last_pulled_at: Option<i64>, page: Option<i32>) -> Result<PullResponse> {
         let mut url = Url::parse("https://api.famkonect.com/api/v1/sync/pull")?;
     
         if let Some(ts) = last_pulled_at {
@@ -127,13 +181,18 @@ impl SyncEngine {
                 .append_pair("last_pulled_at", &ts.to_string());
         }
 
-        println!("Pulling remote changes from: {}", url);
-        io::stdout().flush().unwrap();
+        if let Some(p) = page {
+            url.query_pairs_mut().append_pair("page", &p.to_string());
+        }
+
+        // println!("Pulling remote changes from: {}", url);
+        // io::stdout().flush().unwrap();
 
 
         let res = self.client
             .get(url)
             .header("Authorization", format!("Bearer {}", jwt))
+            .header("X-Tenant-UUID", tenant_uuid)
             .send()
             .await?
             .json::<PullResponse>()
@@ -146,32 +205,42 @@ impl SyncEngine {
     // -------------------------------------------------------------------------
     
 
-    async fn pull_remote_changes_for_table(&self, jwt: &str, table_name: &str, last_pulled_at: Option<i64>) -> Result<PullResponse> {
-    let mut url = Url::parse("https://api.famkonect.com/api/v1/sync/pull")?;
-    
-    // Add query parameters
-    url.query_pairs_mut()
-        .append_pair("table", table_name);
-    
-    if let Some(ts) = last_pulled_at {
-        url.query_pairs_mut()
-            .append_pair("last_pulled_at", &ts.to_string());
-    }
+    async fn pull_remote_changes_for_table(
+    &self, 
+    jwt: &str, 
+    tenant_uuid: &str, 
+    table_name: &str, 
+    last_pulled_at: Option<i64>,
+    page: Option<i32> // Accept page parameter
+    ) -> Result<PullResponse> {
+        let mut url = Url::parse("https://api.famkonect.com/api/v1/sync/pull")?;
+        
+        // Add query parameters
+        url.query_pairs_mut().append_pair("table", table_name);
+        
+        if let Some(ts) = last_pulled_at {
+            url.query_pairs_mut().append_pair("last_pulled_at", &ts.to_string());
+        }
 
-    let res = self.client
-        .get(url)
-        .header("Authorization", format!("Bearer {}", jwt))
-        .send()
-        .await?;
+        if let Some(p) = page {
+            url.query_pairs_mut().append_pair("page", &p.to_string());
+        }
 
-    if !res.status().is_success() {
-        let status = res.status();
-        let text = res.text().await?;
-        return Err(anyhow::anyhow!("Server error {}: {}", status, text));
-    }
+        let res = self.client
+            .get(url)
+            .header("Authorization", format!("Bearer {}", jwt))
+            .header("X-Tenant-UUID", tenant_uuid)
+            .send()
+            .await?;
 
-    let pull_response = res.json::<PullResponse>().await?;
-    Ok(pull_response)
+        if !res.status().is_success() {
+            let status = res.status();
+            let text = res.text().await?;
+            return Err(anyhow::anyhow!("Server error {}: {}", status, text));
+        }
+
+        let pull_response = res.json::<PullResponse>().await?;
+        Ok(pull_response)
     }
 
     // -------------------------------------------------------------------------
@@ -364,6 +433,8 @@ impl SyncEngine {
             created: vec![],
             updated: vec![],
             deleted: vec![],
+            has_more: None,
+            current_page: None,
         };
 
         let rows = sqlx::query(
@@ -395,12 +466,13 @@ impl SyncEngine {
     // -------------------------------------------------------------------------
     // Push local changes
     // -------------------------------------------------------------------------
-    async fn push_local_changes(&self, jwt: &str, changes: HashMap<String, SyncChanges>) -> Result<()> {
+    async fn push_local_changes(&self, jwt: &str, tenant_uuid: &str, changes: HashMap<String, SyncChanges>) -> Result<()> {
         let url = format!("https://api.famkonect.com/api/v1/sync/push");
         let res = self.client
             .post(&url)
             .header("Authorization", format!("Bearer {}", jwt))
             .header("Content-Type", "application/json")
+            .header("X-Tenant-UUID", tenant_uuid)
             .json(&serde_json::json!({ "changes": changes }))
             .send()
             .await?;

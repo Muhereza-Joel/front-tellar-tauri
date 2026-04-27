@@ -18,10 +18,11 @@ pub struct SyncResult {
 pub async fn sync_all(
     state: State<'_, SyncEngineState>,
     jwt: String,
+    tenant_uuid: String,
     last_pulled_at: Option<i64>,
 ) -> Result<SyncResult, String> {
     let engine = state.0.lock().await;
-    match engine.synchronize(&jwt, last_pulled_at).await {
+    match engine.synchronize(&jwt, &tenant_uuid, last_pulled_at).await {
         Ok(ts) => Ok(SyncResult {
             success: true,
             message: "All tables synced successfully".to_string(),
@@ -39,11 +40,12 @@ pub async fn sync_all(
 pub async fn sync_table(
     state: State<'_, SyncEngineState>,
     jwt: String,
+    tenant_uuid: String,
     table_name: String,
     last_pulled_at: Option<i64>,
 ) -> Result<SyncResult, String> {
     let engine = state.0.lock().await;
-    match engine.synchronize_table(&jwt, &table_name, last_pulled_at).await {
+    match engine.synchronize_table(&jwt, &tenant_uuid, &table_name, last_pulled_at).await {
         Ok(ts) => Ok(SyncResult {
             success: true,
             message: format!("Table '{}' synced successfully", table_name),

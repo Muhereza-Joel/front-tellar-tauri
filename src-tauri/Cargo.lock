@@ -1400,6 +1400,7 @@ dependencies = [
  "hostname",
  "keyring",
  "mac_address",
+ "once_cell",
  "reqwest",
  "serde",
  "serde_json",

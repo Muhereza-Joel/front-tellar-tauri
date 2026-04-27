@@ -8,6 +8,12 @@ use std::collections::HashMap;
 use std::fmt;
 use std::io::{self, Write};
 use url::Url;
+use std::collections::HashSet;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
+
+
+static COLUMN_CACHE: Lazy<Mutex<HashMap<String, HashSet<String>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 // -----------------------------------------------------------------------------
 // Sync status enum
 // -----------------------------------------------------------------------------
@@ -86,6 +92,12 @@ impl SyncEngine {
     // Public: sync all tables
     // -------------------------------------------------------------------------
     pub async fn synchronize(&self, jwt: &str, tenant_uuid: &str, last_pulled_at: Option<i64>) -> Result<i64> {
+    // Disable foreign key constraints for this sync operation
+    sqlx::query("PRAGMA foreign_keys = OFF;")
+        .execute(&self.db)
+        .await
+        .context("Failed to disable foreign keys")?;
+    
     let mut current_page = 1;
     let mut final_timestamp = 0;
 
@@ -118,6 +130,12 @@ impl SyncEngine {
             self.mark_as_synced().await?;
         }
 
+        // Re-enable foreign key constraints
+        sqlx::query("PRAGMA foreign_keys = ON;")
+        .execute(&self.db)
+        .await
+        .context("Failed to re-enable foreign keys")?;
+
         Ok(final_timestamp)
     }
 
@@ -125,6 +143,12 @@ impl SyncEngine {
     // Public: sync a single table
     // -------------------------------------------------------------------------
     pub async fn synchronize_table(&self, jwt: &str, tenant_uuid: &str, table_name: &str, last_pulled_at: Option<i64>) -> Result<i64> {
+        // Disable foreign key constraints for this sync operation
+        sqlx::query("PRAGMA foreign_keys = OFF;")
+        .execute(&self.db)
+        .await
+        .context("Failed to disable foreign keys")?;
+
         let mut current_page = 1;
         let mut final_timestamp = 0;
 
@@ -166,6 +190,12 @@ impl SyncEngine {
             self.push_local_changes(jwt, tenant_uuid, changes).await?;
             self.mark_table_as_synced(table_name).await?;
         }
+
+        // Re-enable foreign key constraints
+        sqlx::query("PRAGMA foreign_keys = ON;")
+        .execute(&self.db)
+        .await
+        .context("Failed to re-enable foreign keys")?;
 
         Ok(final_timestamp)
     }
@@ -518,29 +548,68 @@ impl SyncEngine {
         Ok(())
     }
 
+
+
+    async fn get_table_columns(&self, table: &str) -> Result<HashSet<String>> {
+        // Check cache first
+        {
+            let cache = COLUMN_CACHE.lock().unwrap();
+            if let Some(cols) = cache.get(table) {
+                return Ok(cols.clone());
+            }
+        }
+        // Query PRAGMA table_info
+        let rows = sqlx::query(&format!("PRAGMA table_info({})", table))
+            .fetch_all(&self.db)
+            .await?;
+        let mut columns = HashSet::new();
+        for row in rows {
+            let name: String = row.get("name");
+            columns.insert(name);
+        }
+        // Store in cache
+        {
+            let mut cache = COLUMN_CACHE.lock().unwrap();
+            cache.insert(table.to_string(), columns.clone());
+        }
+        Ok(columns)
+    }
+
     // -------------------------------------------------------------------------
     // Upsert a record from JSON
     // -------------------------------------------------------------------------
     async fn upsert_record(
-        &self,
-        tx: &mut Transaction<'_, sqlx::Sqlite>,
-        table: &str,
-        record: serde_json::Value,
+    &self,
+    tx: &mut Transaction<'_, sqlx::Sqlite>,
+    table: &str,
+    record: serde_json::Value,
     ) -> Result<()> {
         let obj = record.as_object().context("Record is not an object")?;
-        let columns: Vec<&str> = obj.keys().map(|k| k.as_str()).collect();
+        let existing_columns = self.get_table_columns(table).await?;
+        
+        // Build list of columns that exist locally
+        let columns: Vec<&str> = obj.keys()
+            .filter(|col| existing_columns.contains(*col))
+            .map(|col| col.as_str())
+            .collect();
+        
+        if columns.is_empty() {
+            return Ok(()); // no matching columns, skip
+        }
+        
         let placeholders: Vec<String> = (1..=columns.len()).map(|i| format!("${}", i)).collect();
-        let values: Vec<serde_json::Value> = columns.iter().map(|&col| obj[col].clone()).collect();
-
         let sql = format!(
             "INSERT OR REPLACE INTO {} ({}) VALUES ({})",
             table,
             columns.join(", "),
             placeholders.join(", ")
         );
-
+        
         let mut query = sqlx::query(&sql);
-        for val in values {
+        
+        // Bind each value according to its JSON type
+        for &col in &columns {
+            let val = &obj[col];
             query = match val {
                 serde_json::Value::Null => query.bind(None::<String>),
                 serde_json::Value::Bool(b) => query.bind(b),
@@ -553,10 +622,12 @@ impl SyncEngine {
                         query.bind(n.to_string())
                     }
                 }
+                // For strings, array, object: treat as string (JSON serialization)
                 serde_json::Value::String(s) => query.bind(s),
-                _ => query.bind(val.to_string()),
+                _ => query.bind(val.to_string()), // arrays and objects become JSON strings
             };
         }
+        
         query.execute(&mut **tx).await?;
         Ok(())
     }

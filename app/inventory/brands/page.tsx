@@ -71,6 +71,7 @@ export default function BrandManagementPage() {
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
                     Brand Name
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="text"
@@ -89,6 +90,7 @@ export default function BrandManagementPage() {
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
                     URL Slug
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <div className="relative">
                     <LinkIcon

@@ -62,6 +62,7 @@ export default function UnitManagementPage() {
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
                     Unit Name (Internal)
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="text"
@@ -81,6 +82,7 @@ export default function UnitManagementPage() {
                   <div>
                     <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
                       Singular Label
+                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
                       type="text"
@@ -98,6 +100,7 @@ export default function UnitManagementPage() {
                   <div>
                     <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
                       Plural Label
+                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
                       type="text"

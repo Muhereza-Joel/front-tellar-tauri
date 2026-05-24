@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Shield, KeyRound } from "lucide-react";
+import { Users, Shield, KeyRound, Building2 } from "lucide-react";
 import ModuleLayout from "../components/ModuleLayout";
 import { useAuth } from "../../app/context/AuthContext";
 
@@ -18,6 +18,12 @@ export default function UserManagementLayout({
       icon: <Users size={20} />,
       href: "/user-management",
       requiredPermission: "view_user", // or "manage_users"
+    },
+    {
+      label: "Branches",
+      icon: <Building2 size={20} />,
+      href: "/user-management/branches",
+      requiredPermission: "create_branch",
     },
     {
       label: "User Roles",

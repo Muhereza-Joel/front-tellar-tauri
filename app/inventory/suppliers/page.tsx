@@ -34,6 +34,9 @@ export default function SupplierManagementPage() {
     totalPages,
     setCurrentPage,
     setPageSize,
+    step,
+    nextStep,
+    prevStep,
   } = useSupplierViewModel();
 
   const { hasPermission } = useAuth();
@@ -69,219 +72,351 @@ export default function SupplierManagementPage() {
               </header>
 
               <form onSubmit={handleSave} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <input
-                      type="text"
-                      placeholder="Company Name"
-                      className={inputStyle("name")}
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Contact Person"
-                      className={inputStyle("contact_person")}
-                      value={formData.contact_person}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          contact_person: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="email"
-                      placeholder="Email Address"
-                      className={inputStyle("email")}
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Phone"
-                      className={inputStyle("phone")}
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Website"
-                      className={inputStyle("website")}
-                      value={formData.website}
-                      onChange={(e) =>
-                        setFormData({ ...formData, website: e.target.value })
-                      }
-                    />
-                  </div>
+                {/* STEP INDICATOR */}
+                <div className="flex gap-2 text-[10px] font-bold uppercase text-zinc-500">
+                  <span className={step === 1 ? "text-blue-600" : ""}>
+                    1. Basic
+                  </span>
+                  <span>→</span>
+                  <span className={step === 2 ? "text-blue-600" : ""}>
+                    2. Contact
+                  </span>
+                  <span>→</span>
+                  <span className={step === 3 ? "text-blue-600" : ""}>
+                    3. Legal
+                  </span>
+                  <span>→</span>
+                  <span className={step === 4 ? "text-blue-600" : ""}>
+                    4. Banking
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <textarea
-                      rows={2}
-                      placeholder="Full Address"
-                      className={inputStyle("address")}
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                    />
+                {/* ================= STEP 1 ================= */}
+                {step === 1 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Supplier Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Company Name"
+                        className={inputStyle("name")}
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
+                      />
+                      {errors.name && (
+                        <p className="text-[10px] text-red-500 mt-1">
+                          {errors.name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Operating Country
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Country"
+                        className={inputStyle("country")}
+                        value={formData.country}
+                        onChange={(e) =>
+                          setFormData({ ...formData, country: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Operating City
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="City"
+                        className={inputStyle("city")}
+                        value={formData.city}
+                        onChange={(e) =>
+                          setFormData({ ...formData, city: e.target.value })
+                        }
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Country"
-                    className={inputStyle("country")}
-                    value={formData.country}
-                    onChange={(e) =>
-                      setFormData({ ...formData, country: e.target.value })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="City"
-                    className={inputStyle("city")}
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                  />
-                </div>
+                )}
 
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Tax ID"
-                    className={inputStyle("tax_id")}
-                    value={formData.tax_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tax_id: e.target.value })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Reg. Number"
-                    className={inputStyle("registration_number")}
-                    value={formData.registration_number}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        registration_number: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Terms (e.g. Net 30)"
-                    className={inputStyle("payment_terms")}
-                    value={formData.payment_terms}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        payment_terms: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="number"
-                    placeholder="Credit Limit"
-                    className={inputStyle("credit_limit")}
-                    value={formData.credit_limit}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        credit_limit: Number(e.target.value),
-                      })
-                    }
-                  />
-                </div>
+                {/* ================= STEP 2 ================= */}
+                {step === 2 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Contact Person <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className={inputStyle("contact_person")}
+                        value={formData.contact_person}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            contact_person: e.target.value,
+                          })
+                        }
+                      />
+                      {errors.contact_person && (
+                        <p className="text-[10px] text-red-500 mt-1">
+                          {errors.contact_person}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Bank Name"
-                    className={inputStyle("bank_name")}
-                    value={formData.bank_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bank_name: e.target.value })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Account Number"
-                    className={inputStyle("bank_account_number")}
-                    value={formData.bank_account_number}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        bank_account_number: e.target.value,
-                      })
-                    }
-                  />
-                </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Official Email Address
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="Email Address"
+                        className={inputStyle("email")}
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                      />
+                    </div>
 
-                <div className="flex flex-col gap-2 py-2">
-                  <label className="flex items-center gap-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      className="rounded-sm border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
-                      checked={formData.is_preferred}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          is_preferred: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-blue-600 transition-colors">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Office Phone Number
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Phone"
+                        className={inputStyle("phone")}
+                        value={formData.phone}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
+                      />
+                      {errors.phone && (
+                        <p className="text-[10px] text-red-500 mt-1">
+                          {errors.phone}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="col-span-2">
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Company Address
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Full Address"
+                        className={inputStyle("address")}
+                        value={formData.address}
+                        onChange={(e) =>
+                          setFormData({ ...formData, address: e.target.value })
+                        }
+                      />
+                      {errors.address && (
+                        <p className="text-[10px] text-red-500 mt-1">
+                          {errors.address}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= STEP 3 ================= */}
+                {step === 3 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Tin Number
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Tax ID"
+                        className={inputStyle("tax_id")}
+                        value={formData.tax_id}
+                        onChange={(e) =>
+                          setFormData({ ...formData, tax_id: e.target.value })
+                        }
+                      />
+                      {errors.tax_id && (
+                        <p className="text-[10px] text-red-500 mt-1">
+                          {errors.tax_id}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Company Number
+                      </label>
+
+                      <input
+                        type="text"
+                        placeholder="Company Reg. Number"
+                        className={inputStyle("registration_number")}
+                        value={formData.registration_number}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            registration_number: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Payment Terms
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Terms (e.g. Net 30)"
+                        className={inputStyle("payment_terms")}
+                        value={formData.payment_terms}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            payment_terms: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Credit Limit
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="Credit Limit"
+                        className={inputStyle("credit_limit")}
+                        value={formData.credit_limit}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            credit_limit: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= STEP 4 ================= */}
+                {step === 4 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Preferred Bank Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Bank Name"
+                        className={inputStyle("bank_name")}
+                        value={formData.bank_name}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            bank_name: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
+                        Cast Account
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Account Number"
+                        className={inputStyle("bank_account_number")}
+                        value={formData.bank_account_number}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            bank_account_number: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    {/* CHECKBOXES */}
+                    <label className="flex items-center gap-2 col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_preferred}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            is_preferred: e.target.checked,
+                          })
+                        }
+                      />
                       Preferred Supplier
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      className="rounded-sm border-zinc-300 dark:border-zinc-700 text-green-600 focus:ring-0 bg-transparent"
-                      checked={formData.is_active}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          is_active: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-green-600 transition-colors">
-                      Active Status
-                    </span>
-                  </label>
-                </div>
+                    </label>
 
+                    <label className="flex items-center gap-2 col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_active}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            is_active: e.target.checked,
+                          })
+                        }
+                      />
+                      Active Status
+                    </label>
+                  </div>
+                )}
+
+                {/* ================= NAVIGATION ================= */}
                 <div className="flex gap-2 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
-                  >
-                    {editingUuid ? <Edit2 size={16} /> : <Plus size={16} />}
-                    {editingUuid ? "Update" : "Save Supplier"}
-                  </button>
+                  {step > 1 && (
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="px-4 py-2 border rounded-md text-xs"
+                    >
+                      Back
+                    </button>
+                  )}
+
+                  {step < 4 && (
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      className="flex-1 bg-zinc-800 text-white py-2 rounded-md text-xs font-bold"
+                    >
+                      Next
+                    </button>
+                  )}
+
+                  {step === 4 && (
+                    <button
+                      type="submit"
+                      className="flex-1 bg-blue-600 text-white py-2 rounded-md font-bold"
+                    >
+                      {editingUuid ? "Update Supplier" : "Save Supplier"}
+                    </button>
+                  )}
+
                   {editingUuid && (
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="px-4 py-2 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs font-bold"
+                      className="px-4 py-2 border rounded-md text-xs"
                     >
                       Cancel
                     </button>

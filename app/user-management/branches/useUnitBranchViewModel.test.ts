@@ -16,6 +16,14 @@ jest.mock("uuid", () => ({
   v7: () => "mocked-branch-uuid-v7",
 }));
 
+// Mock the custom notification hook completely to prevent native Tauri binary crashes
+jest.mock("../../hooks/useNotification", () => ({
+  useNotification: () => ({
+    success: jest.fn(),
+    error: jest.fn(), // If you assert on this mock, change this to your shared mock variable
+  }),
+}));
+
 describe("useBranchViewModel Hook", () => {
   let mockDb: any;
   let mockFindMany: jest.Mock;

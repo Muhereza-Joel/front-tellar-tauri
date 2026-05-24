@@ -2,7 +2,6 @@
 
 import {
   Package,
-  Building2,
   Truck,
   Tags,
   Badge,
@@ -52,12 +51,6 @@ export default function InventoryLayout({
       icon: <ShoppingCart size={20} />,
       href: "/inventory/purchases",
       requiredPermission: "view_purchases",
-    },
-    {
-      label: "Branches",
-      icon: <Building2 size={20} />,
-      href: "/inventory/branches",
-      requiredPermission: "view_branch",
     },
     {
       label: "Suppliers",

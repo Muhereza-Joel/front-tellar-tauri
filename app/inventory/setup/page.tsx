@@ -13,7 +13,7 @@ export default function UnitManagementPage() {
     formData,
     pageSize,
     totalCount,
-    setFormData,
+    updateField,
     handleSave,
     deleteUnit,
     startEdit,
@@ -68,10 +68,13 @@ export default function UnitManagementPage() {
                     placeholder="e.g. Weight - Standard"
                     className={inputStyle("name")}
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => updateField("name", e.target.value)}
                   />
+                  {errors.name && (
+                    <p className="text-[10px] text-red-500 mt-1 font-medium">
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -84,10 +87,13 @@ export default function UnitManagementPage() {
                       placeholder="Piece"
                       className={inputStyle("singular")}
                       value={formData.singular}
-                      onChange={(e) =>
-                        setFormData({ ...formData, singular: e.target.value })
-                      }
+                      onChange={(e) => updateField("singular", e.target.value)}
                     />
+                    {errors.singular && (
+                      <p className="text-[10px] text-red-500 mt-1 font-medium">
+                        {errors.singular}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
@@ -98,10 +104,13 @@ export default function UnitManagementPage() {
                       placeholder="Pieces"
                       className={inputStyle("plural")}
                       value={formData.plural}
-                      onChange={(e) =>
-                        setFormData({ ...formData, plural: e.target.value })
-                      }
+                      onChange={(e) => updateField("plural", e.target.value)}
                     />
+                    {errors.plural && (
+                      <p className="text-[10px] text-red-500 mt-1 font-medium">
+                        {errors.plural}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -114,10 +123,13 @@ export default function UnitManagementPage() {
                     placeholder="Optional details..."
                     className={inputStyle("description")}
                     value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
+                    onChange={(e) => updateField("description", e.target.value)}
                   />
+                  {errors.description && (
+                    <p className="text-[10px] text-red-500 mt-1 font-medium">
+                      {errors.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2 py-2">
@@ -127,10 +139,7 @@ export default function UnitManagementPage() {
                       className="rounded-sm border-zinc-300 dark:border-zinc-700 text-green-600 focus:ring-0 bg-transparent"
                       checked={formData.is_active}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          is_active: e.target.checked,
-                        })
+                        updateField("is_active", e.target.checked)
                       }
                     />
                     <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-green-600 transition-colors">

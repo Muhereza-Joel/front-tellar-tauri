@@ -9,12 +9,14 @@ import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
 import { useAuth } from "../../context/AuthContext";
 
+// Auto-trim values and ensure whitespace-only triggers required validation
 const unitSchema = yup.object({
-  name: yup.string().required("Unit name is required"),
-  singular: yup.string().required("Singular label is required"),
-  plural: yup.string().required("Plural label is required"),
+  name: yup.string().trim().required("Unit name is required"),
+  singular: yup.string().trim().required("Singular label is required"),
+  plural: yup.string().trim().required("Plural label is required"),
   description: yup
     .string()
+    .trim()
     .nullable()
     .transform((v) => (v === "" ? null : v)),
   is_active: yup.boolean().default(true),
@@ -27,6 +29,23 @@ export function useUnitViewModel() {
   const [loading, setLoading] = useState(true);
   const [editingUuid, setEditingUuid] = useState<string | null>(null);
   const [errors, setErrors] = useState<any>({});
+
+  // Add this function right after your useState hooks:
+  const updateField = (field: keyof typeof formData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // If an error exists for this field, clear it immediately as the user types
+    if (errors[field]) {
+      setErrors((prev: any) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -53,7 +72,9 @@ export function useUnitViewModel() {
   });
 
   useEffect(() => {
-    getDatabase().then(setDb);
+    getDatabase()
+      .then(setDb)
+      .catch(() => setLoading(false)); // Gracefully handle connection drops on load
   }, []);
 
   const loadData = async () => {
@@ -64,6 +85,8 @@ export function useUnitViewModel() {
         orderBy: (u: any, { asc }: any) => asc(u.name),
       });
       setUnitsList(results);
+    } catch (error) {
+      console.error("Failed to load units database data:", error);
     } finally {
       setTimeout(() => setLoading(false), 500);
     }
@@ -96,7 +119,7 @@ export function useUnitViewModel() {
       }
 
       resetForm();
-      loadData();
+      await loadData();
     } catch (err: any) {
       if (err instanceof yup.ValidationError) {
         const mappedErrors: Record<string, string> = {};
@@ -110,11 +133,15 @@ export function useUnitViewModel() {
 
   const deleteUnit = async (uuid: string) => {
     if (!db) return;
-    await db
-      .update(units)
-      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
-      .where(eq(units.uuid, uuid));
-    loadData();
+    try {
+      await db
+        .update(units)
+        .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
+        .where(eq(units.uuid, uuid));
+      await loadData();
+    } catch (error) {
+      console.error("Failed to delete unit:", error);
+    }
   };
 
   const startEdit = (unit: any) => {
@@ -143,7 +170,7 @@ export function useUnitViewModel() {
     editingUuid,
     errors,
     formData,
-    setFormData,
+    updateField,
     handleSave,
     deleteUnit,
     startEdit,

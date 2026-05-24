@@ -18,8 +18,12 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /*Add this */
+    "types": ["jest", "@testing-library/jest-dom"]
   },
+
   "include": ["src", "app"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

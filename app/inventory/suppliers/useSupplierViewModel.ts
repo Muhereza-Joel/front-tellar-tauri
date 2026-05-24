@@ -342,6 +342,7 @@ export function useSupplierViewModel() {
     searchTerm,
     setSearchTerm,
     step,
+    setStep, // <-- added
     nextStep,
     prevStep,
   };

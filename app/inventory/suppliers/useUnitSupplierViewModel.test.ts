@@ -113,10 +113,16 @@ describe("useSupplierViewModel Hook", () => {
     const { result } = renderHook(() => useSupplierViewModel());
     await flushAsyncOperations();
 
+    // Provide all required fields to pass other validations,
+    // then intentionally break email and website.
     act(() => {
       result.current.setFormData((prev: any) => ({
         ...prev,
         name: "Global Labs Ltd",
+        contact_person: "Dr. Smith",
+        phone: "+256 123 456789",
+        address: "123 Lab Street",
+        tax_id: "TAX123456",
         email: "malformed-email-string",
         website: "invalid-url-format",
       }));
@@ -135,10 +141,16 @@ describe("useSupplierViewModel Hook", () => {
     const { result } = renderHook(() => useSupplierViewModel());
     await flushAsyncOperations();
 
+    // Provide ALL required fields (name, contact_person, phone, address, tax_id)
+    // plus any optional fields we want to test.
     act(() => {
       result.current.setFormData((prev: any) => ({
         ...prev,
         name: "Biotech Supplies East Africa",
+        contact_person: "Alice Nambi",
+        phone: "+256 772 123456",
+        address: "Plot 7, Industrial Area",
+        tax_id: "TAX987654",
         email: "info@biotech.co.ug",
         credit_limit: 5000,
       }));
@@ -155,6 +167,11 @@ describe("useSupplierViewModel Hook", () => {
       expect.objectContaining({
         uuid: "mocked-supplier-uuid-v7",
         name: "Biotech Supplies East Africa",
+        contact_person: "Alice Nambi",
+        phone: "+256 772 123456",
+        address: "Plot 7, Industrial Area",
+        tax_id: "TAX987654",
+        email: "info@biotech.co.ug",
         tenant_id: "tenant-supplier-123",
         sync_status: "created",
       }),
@@ -184,14 +201,22 @@ describe("useSupplierViewModel Hook", () => {
     const { result } = renderHook(() => useSupplierViewModel());
     await flushAsyncOperations();
 
+    // Start edit with a COMPLETE supplier object that includes all required fields.
+    const completeSupplier = {
+      uuid: "supplier-edit-id-99",
+      name: "AgroVet Holdings",
+      contact_person: "John Kigozi",
+      phone: "+256 702 334455",
+      address: "Plot 12, Nakasero",
+      tax_id: "TAX112233",
+      email: "contact@agrovet.com",
+      credit_limit: 15000,
+    };
     act(() => {
-      result.current.startEdit({
-        uuid: "supplier-edit-id-99",
-        name: "AgroVet Holdings",
-        email: "contact@agrovet.com",
-      });
+      result.current.startEdit(completeSupplier);
     });
 
+    // Modify something (e.g. name)
     act(() => {
       result.current.setFormData((prev: any) => ({
         ...prev,
@@ -268,22 +293,24 @@ describe("useSupplierViewModel Hook", () => {
     });
 
     it("should allow saving edits without self-triggering duplicate exceptions", async () => {
-      mockFindMany.mockResolvedValue([
-        {
-          uuid: "registered-supplier-uuid",
-          name: "Nile Pharmaceuticals",
-          is_active: true,
-        },
-      ]);
+      // Supplier already exists in DB with required fields
+      const existingSupplier = {
+        uuid: "registered-supplier-uuid",
+        name: "Nile Pharmaceuticals",
+        contact_person: "Sarah Namutebi",
+        phone: "+256 712 998877",
+        address: "Plot 9, Jinja Road",
+        tax_id: "TAX445566",
+        is_active: true,
+      };
+      mockFindMany.mockResolvedValue([existingSupplier]);
 
       const { result } = renderHook(() => useSupplierViewModel());
       await flushAsyncOperations();
 
+      // Start editing that same supplier – must include all required fields
       act(() => {
-        result.current.startEdit({
-          uuid: "registered-supplier-uuid",
-          name: "Nile Pharmaceuticals",
-        });
+        result.current.startEdit(existingSupplier);
       });
 
       const mockEvent = { preventDefault: jest.fn() } as any;

@@ -1,9 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   Truck,
   Search,
-  Plus,
   Edit2,
   Trash2,
   Star,
@@ -35,6 +35,7 @@ export default function SupplierManagementPage() {
     setCurrentPage,
     setPageSize,
     step,
+    setStep, // <-- from view model
     nextStep,
     prevStep,
   } = useSupplierViewModel();
@@ -44,7 +45,63 @@ export default function SupplierManagementPage() {
   const canUpdateSupplier = hasPermission("edit_suppliers");
   const canDeleteSupplier = hasPermission("delete_suppliers");
 
-  // Updated for GitHub Black: bg-black, sharp corners (rounded-md), and subtle borders
+  // Map each field to its step number
+  const fieldToStep: Record<string, number> = {
+    name: 1,
+    country: 1,
+    city: 1,
+    contact_person: 2,
+    email: 2,
+    phone: 2,
+    address: 2,
+    tax_id: 3,
+    registration_number: 3,
+    payment_terms: 3,
+    credit_limit: 3,
+    payment_days: 3,
+    bank_name: 4,
+    bank_account_number: 4,
+    is_preferred: 4,
+    is_active: 4,
+    // optional fields that might appear in errors
+    alternative_phone: 2,
+    website: 2,
+    state: 1,
+    postal_code: 1,
+    bank_account_name: 4,
+    bank_branch: 4,
+    rating: 4,
+    notes: 4,
+  };
+
+  // Jump to the step containing the first error and focus the field
+  useEffect(() => {
+    const errorKeys = Object.keys(errors);
+    if (errorKeys.length === 0) return;
+
+    // Find the first field that has an error and exists in the mapping
+    const firstErrorField = errorKeys.find((key) => fieldToStep[key]);
+    if (!firstErrorField) return;
+
+    const targetStep = fieldToStep[firstErrorField];
+    if (targetStep && targetStep !== step) {
+      setStep(targetStep);
+    }
+
+    // Focus the field after step change (allow DOM to update)
+    setTimeout(() => {
+      const element = document.getElementById(`input-${firstErrorField}`);
+      if (element) {
+        element.focus();
+        // If it's an input/textarea, also place cursor at end
+        if ("setSelectionRange" in element) {
+          const inputEl = element as HTMLInputElement | HTMLTextAreaElement;
+          inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+        }
+      }
+    }, 100);
+  }, [errors, step, setStep]);
+
   const inputStyle = (errorKey: string) => `
     w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm outline-none transition-all
     ${
@@ -99,6 +156,7 @@ export default function SupplierManagementPage() {
                         Supplier Name <span className="text-red-500">*</span>
                       </label>
                       <input
+                        id="input-name"
                         type="text"
                         placeholder="Company Name"
                         className={inputStyle("name")}
@@ -119,6 +177,7 @@ export default function SupplierManagementPage() {
                         Operating Country
                       </label>
                       <input
+                        id="input-country"
                         type="text"
                         placeholder="Country"
                         className={inputStyle("country")}
@@ -134,6 +193,7 @@ export default function SupplierManagementPage() {
                         Operating City
                       </label>
                       <input
+                        id="input-city"
                         type="text"
                         placeholder="City"
                         className={inputStyle("city")}
@@ -154,6 +214,7 @@ export default function SupplierManagementPage() {
                         Contact Person <span className="text-red-500">*</span>
                       </label>
                       <input
+                        id="input-contact_person"
                         type="text"
                         className={inputStyle("contact_person")}
                         value={formData.contact_person}
@@ -176,6 +237,7 @@ export default function SupplierManagementPage() {
                         Official Email Address
                       </label>
                       <input
+                        id="input-email"
                         type="email"
                         placeholder="Email Address"
                         className={inputStyle("email")}
@@ -192,6 +254,7 @@ export default function SupplierManagementPage() {
                         <span className="text-red-500">*</span>
                       </label>
                       <input
+                        id="input-phone"
                         type="text"
                         placeholder="Phone"
                         className={inputStyle("phone")}
@@ -213,6 +276,7 @@ export default function SupplierManagementPage() {
                         <span className="text-red-500">*</span>
                       </label>
                       <textarea
+                        id="input-address"
                         rows={2}
                         placeholder="Full Address"
                         className={inputStyle("address")}
@@ -239,6 +303,7 @@ export default function SupplierManagementPage() {
                         <span className="text-red-500">*</span>
                       </label>
                       <input
+                        id="input-tax_id"
                         type="text"
                         placeholder="Tax ID"
                         className={inputStyle("tax_id")}
@@ -258,8 +323,8 @@ export default function SupplierManagementPage() {
                       <label className="text-[10px] font-bold uppercase text-zinc-500 ml-1 mb-1 block">
                         Company Number
                       </label>
-
                       <input
+                        id="input-registration_number"
                         type="text"
                         placeholder="Company Reg. Number"
                         className={inputStyle("registration_number")}
@@ -278,6 +343,7 @@ export default function SupplierManagementPage() {
                         Payment Terms
                       </label>
                       <input
+                        id="input-payment_terms"
                         type="text"
                         placeholder="Terms (e.g. Net 30)"
                         className={inputStyle("payment_terms")}
@@ -296,6 +362,7 @@ export default function SupplierManagementPage() {
                         Credit Limit
                       </label>
                       <input
+                        id="input-credit_limit"
                         type="number"
                         placeholder="Credit Limit"
                         className={inputStyle("credit_limit")}
@@ -319,6 +386,7 @@ export default function SupplierManagementPage() {
                         Preferred Bank Name
                       </label>
                       <input
+                        id="input-bank_name"
                         type="text"
                         placeholder="Bank Name"
                         className={inputStyle("bank_name")}
@@ -337,6 +405,7 @@ export default function SupplierManagementPage() {
                         Cast Account
                       </label>
                       <input
+                        id="input-bank_account_number"
                         type="text"
                         placeholder="Account Number"
                         className={inputStyle("bank_account_number")}
@@ -353,6 +422,7 @@ export default function SupplierManagementPage() {
                     {/* CHECKBOXES */}
                     <label className="flex items-center gap-2 col-span-2">
                       <input
+                        id="input-is_preferred"
                         type="checkbox"
                         checked={formData.is_preferred}
                         onChange={(e) =>
@@ -367,6 +437,7 @@ export default function SupplierManagementPage() {
 
                     <label className="flex items-center gap-2 col-span-2">
                       <input
+                        id="input-is_active"
                         type="checkbox"
                         checked={formData.is_active}
                         onChange={(e) =>

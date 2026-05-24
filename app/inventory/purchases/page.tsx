@@ -387,16 +387,16 @@ export default function PurchaseOrderPage() {
           </div>
         </section>
 
-        <section className="lg:col-span-8 space-y-4">
+        <section className="lg:col-span-8 space-y-2">
           <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-sm">
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-zinc-50 dark:bg-zinc-900/50 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                   <th className="px-4 py-3">Product / SKU *</th>
-                  <th className="px-4 py-3 w-20 text-center">Qty *</th>
-                  <th className="px-4 py-3 w-28 text-right">Price *</th>
-                  <th className="px-4 py-3 w-28 text-right">Total</th>
-                  <th className="px-4 py-3 w-10"></th>
+                  <th className="px-4 py-3 w-40 text-right">Qty *</th>
+                  <th className="px-4 py-3 w-40 text-right">Price *</th>
+                  <th className="px-4 py-3 w-40 text-right">Total</th>
+                  <th className="px-4 py-3 w-20"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">

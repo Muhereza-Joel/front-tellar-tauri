@@ -78,7 +78,7 @@ export default function BrandManagementPage() {
                     placeholder="e.g. Apple"
                     className={inputStyle("name")}
                     value={formData.name}
-                    onChange={(e) => updateField("name", e.target.value)}
+                    onChange={(e) => handleNameChange(e.target.value)}
                   />
                   {errors.name && (
                     <p className="text-[10px] text-red-500 mt-1 font-medium">

@@ -9,16 +9,15 @@ import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
 import { useAuth } from "../../context/AuthContext";
 
-// Auto-trim values and ensure whitespace-only triggers required validation
 const brandSchema = yup.object({
   name: yup.string().trim().required("Brand name is required"),
   slug: yup
     .string()
     .trim()
-    .required("Slug is required") // Put required first
+    .required("Slug is required")
     .matches(/^[a-z0-9-]+$/, {
       message: "Use lowercase, numbers, and hyphens only",
-      excludeEmptyString: true, // <-- Crucial! Stops regex running on empty inputs
+      excludeEmptyString: true,
     }),
   description: yup
     .string()
@@ -54,13 +53,13 @@ export function useBrandViewModel() {
   } = usePagination({
     data: brandsList,
     initialPageSize: 10,
-    searchKeys: ["name", "slug", "description"],
+    searchKeys: ["name", "slug"],
   });
 
   useEffect(() => {
     getDatabase()
       .then(setDb)
-      .catch(() => setLoading(false)); // Gracefully handle connection drops on load
+      .catch(() => setLoading(false));
   }, []);
 
   const loadData = async () => {
@@ -70,7 +69,7 @@ export function useBrandViewModel() {
         where: (b: any, { isNull }: any) => isNull(b.deleted_at),
         orderBy: (b: any, { asc }: any) => asc(b.name),
       });
-      setBrandsList(results);
+      setBrandsList(results || []);
     } catch (error) {
       console.error("Failed to load brands database data:", error);
     } finally {
@@ -82,52 +81,69 @@ export function useBrandViewModel() {
     if (db) loadData();
   }, [db]);
 
-  /**
-   * Helper code to cleanly regenerate a slug matching rule requirements
-   */
-  const computeSlug = (text: string): string => {
-    return text
+  const updateField = (field: keyof typeof formData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    setErrors((prev: any) => {
+      const nextErrors = { ...prev };
+      delete nextErrors[field];
+      return nextErrors;
+    });
+  };
+
+  const handleNameChange = (name: string) => {
+    const slug = name
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, "") // Strip symbols
-      .replace(/[\s_-]+/g, "-") // Collapse spaces/hyphens to single hyphen
-      .replace(/^-+|-+$/g, ""); // Trim flanking hyphens
-  };
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
-  /**
-   * Universal change handler that updates input data, clears field-specific errors,
-   * and automatically updates slugs when 'name' changes.
-   */
-  const updateField = (field: keyof typeof formData, value: any) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
+    // FIX 1: Use a functional state update callback to safely get the freshest previous state
+    setFormData((prev) => ({
+      ...prev,
+      name,
+      slug,
+    }));
 
-      // Dynamic side effect: If user updates name, auto-generate the slug
-      if (field === "name") {
-        updated.slug = computeSlug(value);
-      }
-      return updated;
+    setErrors((prev: any) => {
+      const nextErrors = { ...prev };
+      delete nextErrors.name;
+      delete nextErrors.slug;
+      return nextErrors;
     });
-
-    // Wipe error indicator dynamically as user resolves problems
-    if (errors[field] || (field === "name" && errors["slug"])) {
-      setErrors((prev: any) => {
-        const nextErrors = { ...prev };
-        delete nextErrors[field];
-        if (field === "name") delete nextErrors["slug"];
-        return nextErrors;
-      });
-    }
-  };
-
-  // Deprecated backwards-compatible wrapper for name adjustments
-  const handleNameChange = (name: string) => {
-    updateField("name", name);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    const normalizedInputName = (formData.name || "").trim().toLowerCase();
+    const normalizedInputSlug = (formData.slug || "").trim().toLowerCase();
+
+    // FIX 2: Added optional chaining and safe string defaults to prevent crashes on mocked lists
+    const isDuplicateName = brandsList.some(
+      (b) =>
+        (b?.name || "").trim().toLowerCase() === normalizedInputName &&
+        b.uuid !== editingUuid,
+    );
+    if (isDuplicateName && normalizedInputName.length > 0) {
+      setErrors({ name: "A brand with this name already exists" });
+      return;
+    }
+
+    const isDuplicateSlug = brandsList.some(
+      (b) =>
+        (b?.slug || "").trim().toLowerCase() === normalizedInputSlug &&
+        b.uuid !== editingUuid,
+    );
+    if (isDuplicateSlug && normalizedInputSlug.length > 0) {
+      setErrors({ slug: "This URL slug is already taken" });
+      return;
+    }
 
     try {
       const valid = await brandSchema.validate(formData, { abortEarly: false });
@@ -156,6 +172,20 @@ export function useBrandViewModel() {
           if (e.path) mappedErrors[e.path] = e.message;
         });
         setErrors(mappedErrors);
+      } else {
+        const errorMessage = String(err?.message || err);
+        if (errorMessage.includes("UNIQUE") || errorMessage.includes("2067")) {
+          if (errorMessage.includes("slug")) {
+            setErrors({ slug: "This URL slug is already taken" });
+          } else {
+            setErrors({ name: "A brand with this name already exists" });
+          }
+        } else {
+          setErrors({
+            submit: "An unexpected storage error occurred. Please try again.",
+          });
+        }
+        console.error("Caught persistence layer exception:", err);
       }
     }
   };
@@ -190,6 +220,7 @@ export function useBrandViewModel() {
 
   return {
     brandsList: paginatedData,
+    allBrands: brandsList,
     loading,
     editingUuid,
     errors,

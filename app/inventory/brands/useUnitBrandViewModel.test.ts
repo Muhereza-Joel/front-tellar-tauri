@@ -67,6 +67,103 @@ describe("useBrandViewModel Hook", () => {
     });
   };
 
+  it("should block creation if the brand name matches an existing entity", async () => {
+    mockFindMany.mockResolvedValue([
+      { uuid: "brand-1", name: "Nike", slug: "nike" },
+    ]);
+
+    const { result } = renderHook(() => useBrandViewModel());
+    await flushAsyncOperations();
+
+    act(() => {
+      result.current.handleNameChange("  Nike  ");
+    });
+
+    const mockEvent = { preventDefault: jest.fn() } as any;
+    await act(async () => {
+      await result.current.handleSave(mockEvent);
+    });
+
+    expect(result.current.errors.name).toBe(
+      "A brand with this name already exists",
+    );
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("should block creation if the brand slug matches an existing entity", async () => {
+    mockFindMany.mockResolvedValue([
+      { uuid: "brand-1", name: "Nike Premium", slug: "nike" },
+    ]);
+
+    const { result } = renderHook(() => useBrandViewModel());
+    await flushAsyncOperations();
+
+    act(() => {
+      result.current.updateField("name", "Nike Alter");
+      result.current.updateField("slug", "nike"); // manual tweak or collision
+    });
+
+    const mockEvent = { preventDefault: jest.fn() } as any;
+    await act(async () => {
+      await result.current.handleSave(mockEvent);
+    });
+
+    expect(result.current.errors.slug).toBe("This URL slug is already taken");
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("should gracefully catch unique constraint failures thrown directly from the database engine", async () => {
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    mockFindMany.mockResolvedValue([]);
+    mockValues.mockRejectedValue(
+      new Error("UNIQUE constraint failed: brands.name (code: 2067)"),
+    );
+
+    const { result } = renderHook(() => useBrandViewModel());
+    await flushAsyncOperations();
+
+    act(() => {
+      result.current.handleNameChange("Adidas");
+    });
+
+    const mockEvent = { preventDefault: jest.fn() } as any;
+    await act(async () => {
+      await result.current.handleSave(mockEvent);
+    });
+
+    expect(result.current.errors.name).toBe(
+      "A brand with this name already exists",
+    );
+    consoleSpy.mockRestore();
+  });
+
+  it("should allow editing a record using its own current attributes", async () => {
+    mockFindMany.mockResolvedValue([
+      { uuid: "edit-brand-id", name: "Puma", slug: "puma" },
+    ]);
+
+    const { result } = renderHook(() => useBrandViewModel());
+    await flushAsyncOperations();
+
+    act(() => {
+      result.current.startEdit({
+        uuid: "edit-brand-id",
+        name: "Puma",
+        slug: "puma",
+      });
+    });
+
+    const mockEvent = { preventDefault: jest.fn() } as any;
+    await act(async () => {
+      await result.current.handleSave(mockEvent);
+    });
+
+    expect(result.current.errors.name).toBeUndefined();
+    expect(mockUpdate).toHaveBeenCalled();
+  });
+
   it("should initialize with default states and load data on mount", async () => {
     mockFindMany.mockResolvedValue([
       { uuid: "1", name: "Sony", slug: "sony", description: "Electronics" },
@@ -88,7 +185,7 @@ describe("useBrandViewModel Hook", () => {
     await flushAsyncOperations();
 
     act(() => {
-      result.current.updateField("name", "  Logitech G-Series!!!  ");
+      result.current.handleNameChange("  Logitech G-Series!!!  ");
     });
 
     // Check slug rules application: lowercase, stripped special characters, spaces to single hyphens
@@ -142,7 +239,7 @@ describe("useBrandViewModel Hook", () => {
     await flushAsyncOperations();
 
     act(() => {
-      result.current.updateField("name", "Samsung");
+      result.current.handleNameChange("Samsung");
       result.current.updateField("description", "Premium displays");
     });
 

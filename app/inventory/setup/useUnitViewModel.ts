@@ -30,7 +30,14 @@ export function useUnitViewModel() {
   const [editingUuid, setEditingUuid] = useState<string | null>(null);
   const [errors, setErrors] = useState<any>({});
 
-  // Add this function right after your useState hooks:
+  const [formData, setFormData] = useState({
+    name: "",
+    singular: "",
+    plural: "",
+    description: "",
+    is_active: true,
+  });
+
   const updateField = (field: keyof typeof formData, value: any) => {
     setFormData((prev) => ({
       ...prev,
@@ -46,14 +53,6 @@ export function useUnitViewModel() {
       });
     }
   };
-
-  const [formData, setFormData] = useState({
-    name: "",
-    singular: "",
-    plural: "",
-    description: "",
-    is_active: true,
-  });
 
   const {
     paginatedData,
@@ -100,20 +99,45 @@ export function useUnitViewModel() {
     e.preventDefault();
     setErrors({});
 
+    const normalizedInputName = (formData.name || "").trim().toLowerCase();
+
+    // FIX: Use in-memory units list instead of querying DB
+    const isDuplicateName = unitsList.some(
+      (u: any) =>
+        (u?.name || "").trim().toLowerCase() === normalizedInputName &&
+        u.uuid !== editingUuid,
+    );
+
+    if (isDuplicateName && normalizedInputName.length > 0) {
+      setErrors({
+        name: "A unit with this name already exists",
+      });
+      return;
+    }
+
     try {
-      const valid = await unitSchema.validate(formData, { abortEarly: false });
+      const valid = await unitSchema.validate(formData, {
+        abortEarly: false,
+      });
+
+      if (!db) return;
+
+      const tenantId = getTenantId();
 
       if (editingUuid) {
         await db
           .update(units)
-          .set({ ...valid, sync_status: "updated" })
+          .set({
+            ...valid,
+            sync_status: "updated",
+          })
           .where(eq(units.uuid, editingUuid));
       } else {
         await db.insert(units).values({
           uuid: uuidv7(),
           ...valid,
           sync_status: "created",
-          tenant_id: getTenantId(),
+          tenant_id: tenantId,
           created_at: new Date().toISOString(),
         });
       }
@@ -123,10 +147,26 @@ export function useUnitViewModel() {
     } catch (err: any) {
       if (err instanceof yup.ValidationError) {
         const mappedErrors: Record<string, string> = {};
+
         err.inner.forEach((e) => {
           if (e.path) mappedErrors[e.path] = e.message;
         });
+
         setErrors(mappedErrors);
+      } else {
+        const errorMessage = String(err?.message || err);
+
+        if (errorMessage.includes("UNIQUE") || errorMessage.includes("2067")) {
+          setErrors({
+            name: "A unit with this name already exists",
+          });
+        } else {
+          setErrors({
+            submit: "An unexpected storage error occurred. Please try again.",
+          });
+        }
+
+        console.error("Caught persistence layer exception:", err);
       }
     }
   };

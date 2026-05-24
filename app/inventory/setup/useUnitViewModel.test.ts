@@ -25,6 +25,11 @@ describe("useUnitViewModel Hook", () => {
   let mockValues: jest.Mock;
   let mockSet: jest.Mock;
 
+  // Drizzle Fluent Chains for Select/Duplicate Layer Engine
+  let mockSelect: jest.Mock;
+  let mockFrom: jest.Mock;
+  let mockSelectWhere: jest.Mock;
+
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
@@ -38,6 +43,11 @@ describe("useUnitViewModel Hook", () => {
     mockSet = jest.fn().mockReturnValue({ where: mockWhere });
     mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
 
+    // Mocking select statement pipeline: db.select().from().where()
+    mockSelectWhere = jest.fn().mockResolvedValue([]); // Default to no duplicates
+    mockFrom = jest.fn().mockReturnValue({ where: mockSelectWhere });
+    mockSelect = jest.fn().mockReturnValue({ from: mockFrom });
+
     mockDb = {
       query: {
         units: {
@@ -46,6 +56,7 @@ describe("useUnitViewModel Hook", () => {
       },
       insert: mockInsert,
       update: mockUpdate,
+      select: mockSelect,
     };
 
     (getDatabase as jest.Mock).mockResolvedValue(mockDb);
@@ -431,6 +442,84 @@ describe("useUnitViewModel Hook", () => {
 
       expect(result.current.currentPage).toBe(1);
       expect(result.current.totalPages).toBe(1);
+    });
+  });
+
+  describe("useUnitViewModel Hook - Duplicate Prevention System", () => {
+    it("should block registration and raise an error if unit name matches case-insensitively", async () => {
+      // 1. Pre-hydrate the database findMany lookup so that unitsList receives the active duplicate record on hook load
+      mockFindMany.mockResolvedValue([
+        {
+          uuid: "existing-uuid",
+          name: "  BOX-STANDARD ",
+          singular: "Box",
+          plural: "Boxes",
+          is_active: true,
+          tenant_id: "tenant-123",
+        },
+      ]);
+
+      const { result } = renderHook(() => useUnitViewModel());
+
+      // Flush operations to allow loadData() to resolve and hydrate result.current.unitsList
+      await flushAsyncOperations();
+
+      // 2. Stage the duplicate form inputs
+      act(() => {
+        result.current.updateField("name", "box-standard");
+        result.current.updateField("singular", "Box");
+        result.current.updateField("plural", "Boxes");
+      });
+
+      const mockEvent = { preventDefault: jest.fn() } as any;
+
+      await act(async () => {
+        await result.current.handleSave(mockEvent);
+      });
+      await flushAsyncOperations();
+
+      // 3. Asset that local in-memory validations caught it before hitting the DB layer
+      expect(result.current.errors.name).toBe(
+        "A unit with this name already exists",
+      );
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
+
+    it("should allow editing current entity name to be updated without matching self as duplicate", async () => {
+      // Pre-hydrate the target edit unit into unitsList
+      mockFindMany.mockResolvedValue([
+        {
+          uuid: "edit-target-id",
+          name: "Roll",
+          singular: "Roll",
+          plural: "Rolls",
+          is_active: true,
+          tenant_id: "tenant-123",
+        },
+      ]);
+
+      const { result } = renderHook(() => useUnitViewModel());
+      await flushAsyncOperations();
+
+      // Start editing the exact same record
+      act(() => {
+        result.current.startEdit({
+          uuid: "edit-target-id",
+          name: "Roll",
+          singular: "Roll",
+          plural: "Rolls",
+          is_active: true,
+        });
+      });
+
+      const mockEvent = { preventDefault: jest.fn() } as any;
+      await act(async () => {
+        await result.current.handleSave(mockEvent);
+      });
+      await flushAsyncOperations();
+
+      expect(result.current.errors.name).toBeUndefined();
+      expect(mockUpdate).toHaveBeenCalled();
     });
   });
 });

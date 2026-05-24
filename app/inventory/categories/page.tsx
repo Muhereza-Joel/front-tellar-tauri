@@ -25,7 +25,7 @@ export default function CategoryManagementPage() {
     formData,
     pageSize,
     totalCount,
-    setFormData,
+    updateField,
     handleSave,
     deleteCategory,
     startEdit,
@@ -87,16 +87,21 @@ export default function CategoryManagementPage() {
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
                     Category Name
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. Phones"
                     className={inputStyle("name")}
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => updateField("name", e.target.value)}
                   />
+
+                  {errors.name && (
+                    <p className="mt-1 text-xs text-red-500 ml-1">
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -134,8 +139,9 @@ export default function CategoryManagementPage() {
                               : undefined
                         }
                         setValue={(val: string) => {
+                          // 1. Handled Root Parent Selection via updateField
                           if (val === "No Parent (Root)") {
-                            setFormData({ ...formData, parent_id: "" });
+                            updateField("parent_id", "");
                             return;
                           }
 
@@ -143,10 +149,8 @@ export default function CategoryManagementPage() {
                             (cat) => getLabel(cat) === val,
                           );
 
-                          setFormData({
-                            ...formData,
-                            parent_id: selected?.uuid || "",
-                          });
+                          // 2. Handled Normal Category Selection via updateField
+                          updateField("parent_id", selected?.uuid || "");
                         }}
                         placeholder="Select parent category..."
                         createNewOptionIfNoMatch={false}
@@ -156,6 +160,13 @@ export default function CategoryManagementPage() {
                       />
                     );
                   })()}
+
+                  {/* Render the field-specific error message if it exists */}
+                  {errors.parent_id && (
+                    <p className="mt-1 text-xs text-red-500 ml-1">
+                      {errors.parent_id}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex gap-2 pt-2">

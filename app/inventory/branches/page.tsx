@@ -70,6 +70,7 @@ export default function BranchManagementPage() {
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">
                     Branch Name
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     type="text"
@@ -80,6 +81,11 @@ export default function BranchManagementPage() {
                       setFormData({ ...formData, name: e.target.value })
                     }
                   />
+                  {errors.name && (
+                    <p className="text-[10px] text-red-500 mt-1 font-medium">
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

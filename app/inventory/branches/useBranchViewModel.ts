@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { getDatabase } from "../../../db";
-import { branches } from "../../../db/schemas/branches"; // Assuming your schema file name
+import { branches } from "../../../db/schemas/branches";
 import { eq } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
 import { useAuth } from "../../context/AuthContext";
+import { useNotification } from "../../hooks/useNotification";
 
 const branchSchema = yup.object({
   name: yup.string().required("Branch name is required"),
@@ -42,6 +43,7 @@ const branchSchema = yup.object({
 
 export function useBranchViewModel() {
   const { getTenantId } = useAuth();
+  const { error } = useNotification();
   const [db, setDb] = useState<any>(null);
   const [branchesList, setBranchesList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,11 +75,13 @@ export function useBranchViewModel() {
   } = usePagination({
     data: branchesList,
     initialPageSize: 10,
-    searchKeys: ["name", "email", "city", "country"],
+    searchKeys: ["name", "city", "country", "email"],
   });
 
   useEffect(() => {
-    getDatabase().then(setDb);
+    getDatabase()
+      .then(setDb)
+      .catch(() => setLoading(false));
   }, []);
 
   const loadData = async () => {
@@ -85,9 +89,11 @@ export function useBranchViewModel() {
     try {
       const results = await db.query.branches.findMany({
         where: (b: any, { isNull }: any) => isNull(b.deleted_at),
-        orderBy: (b: any, { desc }: any) => desc(b.created_at),
+        orderBy: (b: any, { asc }: any) => asc(b.name),
       });
       setBranchesList(results);
+    } catch (error) {
+      console.error("Failed to load branches:", error);
     } finally {
       setTimeout(() => setLoading(false), 500);
     }
@@ -101,28 +107,70 @@ export function useBranchViewModel() {
     e.preventDefault();
     setErrors({});
 
+    const normalizedInputName = (formData.name || "").trim().toLowerCase();
+
+    // 1. In-memory duplicate name check
+    const isDuplicateName = branchesList.some(
+      (b: any) =>
+        (b?.name || "").trim().toLowerCase() === normalizedInputName &&
+        b.uuid !== editingUuid,
+    );
+
+    if (isDuplicateName && normalizedInputName.length > 0) {
+      setErrors({
+        name: "A branch with this name already exists",
+      });
+      return;
+    }
+
+    // 2. In-memory multi-headquarters prevention check
+    if (formData.is_main) {
+      const hasExistingMainBranch = branchesList.some(
+        (b: any) => b.is_main === true && b.uuid !== editingUuid,
+      );
+
+      if (hasExistingMainBranch) {
+        // Trigger system sound and native application platform notification banner
+        error(
+          "You have already registered a main headquarters branch, please unregister the existing one first, then you can register a new main headquarters branch.",
+        );
+
+        setErrors({
+          is_main: "A main headquarters branch already exists for this tenant",
+        });
+        return;
+      }
+    }
+
     try {
       const valid = await branchSchema.validate(formData, {
         abortEarly: false,
       });
 
+      if (!db) return;
+
+      const tenantId = getTenantId();
+
       if (editingUuid) {
         await db
           .update(branches)
-          .set({ ...valid, sync_status: "updated" })
+          .set({
+            ...valid,
+            sync_status: "updated",
+          })
           .where(eq(branches.uuid, editingUuid));
       } else {
         await db.insert(branches).values({
           uuid: uuidv7(),
           ...valid,
           sync_status: "created",
-          tenant_id: getTenantId(),
+          tenant_id: tenantId,
           created_at: new Date().toISOString(),
         });
       }
 
       resetForm();
-      loadData();
+      await loadData();
     } catch (err: any) {
       if (err instanceof yup.ValidationError) {
         const mappedErrors: Record<string, string> = {};
@@ -130,17 +178,33 @@ export function useBranchViewModel() {
           if (e.path) mappedErrors[e.path] = e.message;
         });
         setErrors(mappedErrors);
+      } else {
+        const errorMessage = String(err?.message || err);
+        if (errorMessage.includes("UNIQUE") || errorMessage.includes("2067")) {
+          setErrors({
+            name: "A branch with this name already exists",
+          });
+        } else {
+          setErrors({
+            submit: "An unexpected storage error occurred. Please try again.",
+          });
+        }
+        console.error("Caught persistence layer exception:", err);
       }
     }
   };
 
   const deleteBranch = async (uuid: string) => {
     if (!db) return;
-    await db
-      .update(branches)
-      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
-      .where(eq(branches.uuid, uuid));
-    loadData();
+    try {
+      await db
+        .update(branches)
+        .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
+        .where(eq(branches.uuid, uuid));
+      await loadData();
+    } catch (error) {
+      console.error("Failed to delete branch:", error);
+    }
   };
 
   const startEdit = (branch: any) => {

@@ -21,7 +21,7 @@ export default function BrandManagementPage() {
     formData,
     pageSize,
     totalCount,
-    setFormData,
+    updateField,
     handleNameChange,
     handleSave,
     deleteBrand,
@@ -77,8 +77,13 @@ export default function BrandManagementPage() {
                     placeholder="e.g. Apple"
                     className={inputStyle("name")}
                     value={formData.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
+                    onChange={(e) => updateField("name", e.target.value)}
                   />
+                  {errors.name && (
+                    <p className="text-[10px] text-red-500 mt-1 font-medium">
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -95,11 +100,14 @@ export default function BrandManagementPage() {
                       placeholder="brand-name"
                       className={`${inputStyle("slug")} pl-9`}
                       value={formData.slug}
-                      onChange={(e) =>
-                        setFormData({ ...formData, slug: e.target.value })
-                      }
+                      onChange={(e) => updateField("slug", e.target.value)}
                     />
                   </div>
+                  {errors.slug && (
+                    <p className="text-[10px] text-red-500 mt-1 font-medium">
+                      {errors.slug}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -110,10 +118,13 @@ export default function BrandManagementPage() {
                     rows={3}
                     className={inputStyle("description")}
                     value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
+                    onChange={(e) => updateField("description", e.target.value)}
                   />
+                  {errors.description && (
+                    <p className="text-[10px] text-red-500 mt-1 font-medium">
+                      {errors.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex gap-2 pt-2">

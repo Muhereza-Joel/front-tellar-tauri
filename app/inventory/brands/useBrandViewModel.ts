@@ -9,14 +9,20 @@ import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../../hooks/usePagination";
 import { useAuth } from "../../context/AuthContext";
 
+// Auto-trim values and ensure whitespace-only triggers required validation
 const brandSchema = yup.object({
-  name: yup.string().required("Brand name is required"),
+  name: yup.string().trim().required("Brand name is required"),
   slug: yup
     .string()
-    .required("Slug is required")
-    .matches(/^[a-z0-9-]+$/, "Use lowercase, numbers, and hyphens only"),
+    .trim()
+    .required("Slug is required") // Put required first
+    .matches(/^[a-z0-9-]+$/, {
+      message: "Use lowercase, numbers, and hyphens only",
+      excludeEmptyString: true, // <-- Crucial! Stops regex running on empty inputs
+    }),
   description: yup
     .string()
+    .trim()
     .nullable()
     .transform((v) => (v === "" ? null : v)),
 });
@@ -48,11 +54,13 @@ export function useBrandViewModel() {
   } = usePagination({
     data: brandsList,
     initialPageSize: 10,
-    searchKeys: ["name", "slug"],
+    searchKeys: ["name", "slug", "description"],
   });
 
   useEffect(() => {
-    getDatabase().then(setDb);
+    getDatabase()
+      .then(setDb)
+      .catch(() => setLoading(false)); // Gracefully handle connection drops on load
   }, []);
 
   const loadData = async () => {
@@ -63,6 +71,8 @@ export function useBrandViewModel() {
         orderBy: (b: any, { asc }: any) => asc(b.name),
       });
       setBrandsList(results);
+    } catch (error) {
+      console.error("Failed to load brands database data:", error);
     } finally {
       setTimeout(() => setLoading(false), 500);
     }
@@ -71,6 +81,49 @@ export function useBrandViewModel() {
   useEffect(() => {
     if (db) loadData();
   }, [db]);
+
+  /**
+   * Helper code to cleanly regenerate a slug matching rule requirements
+   */
+  const computeSlug = (text: string): string => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Strip symbols
+      .replace(/[\s_-]+/g, "-") // Collapse spaces/hyphens to single hyphen
+      .replace(/^-+|-+$/g, ""); // Trim flanking hyphens
+  };
+
+  /**
+   * Universal change handler that updates input data, clears field-specific errors,
+   * and automatically updates slugs when 'name' changes.
+   */
+  const updateField = (field: keyof typeof formData, value: any) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+
+      // Dynamic side effect: If user updates name, auto-generate the slug
+      if (field === "name") {
+        updated.slug = computeSlug(value);
+      }
+      return updated;
+    });
+
+    // Wipe error indicator dynamically as user resolves problems
+    if (errors[field] || (field === "name" && errors["slug"])) {
+      setErrors((prev: any) => {
+        const nextErrors = { ...prev };
+        delete nextErrors[field];
+        if (field === "name") delete nextErrors["slug"];
+        return nextErrors;
+      });
+    }
+  };
+
+  // Deprecated backwards-compatible wrapper for name adjustments
+  const handleNameChange = (name: string) => {
+    updateField("name", name);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +148,7 @@ export function useBrandViewModel() {
       }
 
       resetForm();
-      loadData();
+      await loadData();
     } catch (err: any) {
       if (err instanceof yup.ValidationError) {
         const mappedErrors: Record<string, string> = {};
@@ -109,11 +162,15 @@ export function useBrandViewModel() {
 
   const deleteBrand = async (uuid: string) => {
     if (!db) return;
-    await db
-      .update(brands)
-      .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
-      .where(eq(brands.uuid, uuid));
-    loadData();
+    try {
+      await db
+        .update(brands)
+        .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
+        .where(eq(brands.uuid, uuid));
+      await loadData();
+    } catch (error) {
+      console.error("Failed to delete brand:", error);
+    }
   };
 
   const startEdit = (brand: any) => {
@@ -131,20 +188,6 @@ export function useBrandViewModel() {
     setErrors({});
   };
 
-  /**
-   * UPDATED: Regenerates slug on every name change,
-   * regardless of whether creating or editing.
-   */
-  const handleNameChange = (name: string) => {
-    const slug = name
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    setFormData({ ...formData, name, slug });
-  };
-
   return {
     brandsList: paginatedData,
     loading,
@@ -152,6 +195,7 @@ export function useBrandViewModel() {
     errors,
     formData,
     setFormData,
+    updateField,
     handleNameChange,
     handleSave,
     deleteBrand,

@@ -1,25 +1,23 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { getDatabase } from "../../../db";
 import {
   purchaseOrders,
   purchaseOrderItems,
-  type PurchaseOrder,
-  type PurchaseOrderItem,
 } from "../../../db/schemas/purchase_orders";
-import { type Product } from "../../../db/schemas/product";
-import { type Supplier } from "../../../db/schemas/suppliers";
-import { eq, sql, isNull, desc, SQLWrapper, AnyColumn } from "drizzle-orm";
+import { suppliers } from "../../../db/schemas/suppliers";
+import { eq, isNull, desc, sql } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
-import { usePagination } from "../../hooks/usePagination";
-import { useAuth } from "../../context/AuthContext";
+import { usePurchaseOrderItems } from "./usePurchaseOrderItems";
+import { useProductLookup } from "./useProductLookup";
+import { PurchaseOrderStateContext } from "./state/purchaseOrderStateContext";
 
-// Validation schema for Purchase Order header
 const purchaseOrderSchema = yup.object({
   po_number: yup.string().required("PO Number is required"),
-  vendor_uuid: yup.string().required("Supplier is required"),
+  vendor_uuid: yup.string().required("Supplier selection is required"),
   vendor_name: yup.string().required("Supplier name is required"),
   issue_date: yup.string().required("Issue date is required"),
   expected_delivery_date: yup
@@ -36,29 +34,26 @@ const purchaseOrderSchema = yup.object({
     .transform((v) => (v === "" ? null : v)),
 });
 
-// Validation schema for line items - using snake_case to match state
-const purchaseOrderItemSchema = yup.object({
-  product_uuid: yup.string().required("Product is required"),
-  product_name: yup.string().required("Product name is required"),
-  quantity: yup.number().min(1, "Quantity must be at least 1").required(),
-  unit_price: yup.number().min(0, "Price must be 0 or greater").required(),
-});
-
 export function usePurchaseOrderViewModel() {
-  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
+  const [view, setView] = useState<"list" | "form">("list");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [view, setView] = useState<"list" | "form">("list");
+  const [_generatingPoNumber, setGeneratingPoNumber] = useState(false);
   const [editingUuid, setEditingUuid] = useState<string | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<any>({});
 
-  // Data lists
-  const [poList, setPoList] = useState<PurchaseOrder[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [rawPoList, setRawPoList] = useState<any[]>([]);
+  const [suppliersList, setSuppliersList] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Form state
-  const [formData, setFormData] = useState({
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const itemModel = usePurchaseOrderItems();
+  const lookupModel = useProductLookup(db);
+
+  const [formData, setFormData] = useState<any>({
     po_number: "",
     vendor_uuid: "",
     vendor_name: "",
@@ -68,435 +63,159 @@ export function usePurchaseOrderViewModel() {
     notes: "",
   });
 
-  // Line items state
-  const [items, setItems] = useState<Partial<PurchaseOrderItem>[]>([
-    {
-      uuid: uuidv7(),
-      product_uuid: "",
-      product_name: "",
-      sku: "",
-      quantity: 1,
-      unit_price: 0,
-      total_price: 0,
-    },
-  ]);
+  // State context ref
+  const stateContextRef = useRef<PurchaseOrderStateContext | null>(null);
 
-  // Product search state for each item row
-  const [productSearch, setProductSearch] = useState<Record<string, string>>(
-    {},
-  );
-  const [productSuggestions, setProductSuggestions] = useState<
-    Record<string, Product[]>
-  >({});
-  const [showProductDropdown, setShowProductDropdown] = useState<
-    Record<string, boolean>
-  >({});
-
-  // Pagination for list view
-  const {
-    paginatedData,
-    currentPage,
-    setCurrentPage,
-    pageSize,
-    setPageSize,
-    totalPages,
-    totalCount,
-    searchTerm,
-    setSearchTerm,
-  } = usePagination({
-    data: poList,
-    initialPageSize: 10,
-    searchKeys: ["po_number", "vendor_name", "status"],
-  });
-
-  // Totals calculation - NO TAX
-  const totals = useMemo(() => {
-    const subtotal = items.reduce(
-      (sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0),
-      0,
-    );
-    return { subtotal, tax: 0, total: subtotal };
-  }, [items]);
-
-  // Initialize database
   useEffect(() => {
-    getDatabase().then(setDb);
+    async function init() {
+      const instance = await getDatabase();
+      setDb(instance);
+    }
+    init();
   }, []);
 
-  // Load data when db is ready
   useEffect(() => {
-    if (db) {
-      loadPurchaseOrders();
-      loadSuppliers();
-    }
+    if (db) loadData();
   }, [db]);
 
-  // Load purchase orders
-  const loadPurchaseOrders = async () => {
-    if (!db) return;
-
-    try {
-      const results = await db.query.purchaseOrders.findMany({
-        where: (po: { deleted_at: SQLWrapper }) => isNull(po.deleted_at),
-        orderBy: (po: { created_at: SQLWrapper | AnyColumn }) => [
-          desc(po.created_at),
-        ],
-      });
-
-      setPoList(results);
-    } catch (error) {
-      console.error("Error loading POs:", error);
-    } finally {
-      setTimeout(() => setLoading(false), 300);
-    }
-  };
-
-  // Load suppliers for dropdown
-  const loadSuppliers = async () => {
-    if (!db) return;
-    try {
-      const results = await db.query.suppliers.findMany({
-        where: (s: any, { and, eq }: any) =>
-          and(eq(s.is_active, true), sql`${s.deleted_at} IS NULL`),
-        orderBy: (s: any, { asc }: any) => asc(s.name),
-      });
-      setSuppliers(results);
-    } catch (error) {
-      console.error("Error loading suppliers:", error);
-    }
-  };
-
-  // Search products for autocomplete
-  const searchProducts = async (searchTerm: string, itemUuid: string) => {
-    if (!db || !searchTerm || searchTerm.length < 2) {
-      setProductSuggestions((prev) => ({ ...prev, [itemUuid]: [] }));
-      return;
-    }
-
-    try {
-      const results = await db.query.products.findMany({
-        where: (p: any, { and, eq, like }: any) =>
-          and(
-            eq(p.is_active, true),
-            sql`${p.deleted_at} IS NULL`,
-            like(p.name, `%${searchTerm}%`),
-          ),
-        limit: 10,
-      });
-      setProductSuggestions((prev) => ({ ...prev, [itemUuid]: results }));
-    } catch (error) {
-      console.error("Error searching products:", error);
-    }
-  };
-
-  // Clear product search for a row
-  const clearProductSearch = (itemUuid: string) => {
-    setProductSearch((prev) => ({ ...prev, [itemUuid]: "" }));
-    setProductSuggestions((prev) => ({ ...prev, [itemUuid]: [] }));
-    setShowProductDropdown((prev) => ({ ...prev, [itemUuid]: false }));
-    updateItem(itemUuid, "product_uuid", "");
-    updateItem(itemUuid, "product_name", "");
-    updateItem(itemUuid, "sku", "");
-  };
-
-  // Load purchase order for editing
-  const loadPurchaseOrderForEdit = async (uuid: string) => {
+  const loadData = async () => {
     if (!db) return;
     setLoading(true);
     try {
-      // Load header
-      const po = await db.query.purchaseOrders.findFirst({
-        where: (po: any, { eq }: any) => eq(po.uuid, uuid),
-      });
+      const pos = await db
+        .select()
+        .from(purchaseOrders)
+        .where(isNull(purchaseOrders.deleted_at))
+        .orderBy(desc(purchaseOrders.created_at));
 
-      if (!po) throw new Error("PO not found");
+      const sups = await db
+        .select()
+        .from(suppliers)
+        .where(isNull(suppliers.deleted_at));
 
-      const rawData = po.uuid;
-
-      setFormData({
-        po_number: rawData[1] ?? "",
-        vendor_uuid: rawData[2] ?? "",
-        vendor_name: rawData[3] ?? "",
-        issue_date: rawData[5] ?? "",
-        expected_delivery_date: rawData[6] ?? "",
-        status: rawData[4] ?? "",
-        notes: rawData[10] ?? "",
-      });
-
-      // Load line items
-      const poItems = await db.query.purchaseOrderItems.findMany({
-        where: (item: any, { eq }: any) => eq(item.purchase_order_uuid, uuid),
-      });
-
-      if (poItems && poItems.length > 0) {
-        setItems(poItems.map((item: any) => ({ ...item, uuid: item.uuid })));
-        // Initialize product search for each item
-        const searchState: Record<string, string> = {};
-        poItems.forEach((item: any) => {
-          searchState[item.uuid] = item.product_name;
-        });
-        setProductSearch(searchState);
-      } else {
-        resetItems();
-      }
-    } catch (error) {
-      console.error("Error loading PO for edit:", error);
+      setRawPoList(pos);
+      setSuppliersList(sups);
+    } catch (err) {
+      console.error("Failed to load procurement data:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Update line item field with auto total calculation
-  const updateItem = (
-    uuid: string,
-    field: keyof PurchaseOrderItem,
-    value: any,
-  ) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.uuid === uuid) {
-          const updated = { ...item, [field]: value };
-          if (field === "quantity" || field === "unit_price") {
-            updated.total_price =
-              (updated.quantity || 0) * (updated.unit_price || 0);
-          }
-          return updated;
-        }
-        return item;
-      }),
+  const filteredPoList = useMemo(() => {
+    if (!searchTerm.trim()) return rawPoList;
+    const term = searchTerm.toLowerCase();
+    return rawPoList.filter(
+      (po) =>
+        po.po_number?.toLowerCase().includes(term) ||
+        po.vendor_name?.toLowerCase().includes(term),
     );
+  }, [rawPoList, searchTerm]);
+
+  const totalCount = filteredPoList.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredPoList.slice(start, start + pageSize);
+  }, [filteredPoList, currentPage, pageSize]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, pageSize]);
+
+  const setVendorSelected = (vendorUuid: string) => {
+    const target = suppliersList.find((s) => s.uuid === vendorUuid);
+    setFormData((prev: any) => ({
+      ...prev,
+      vendor_uuid: vendorUuid,
+      vendor_name: target ? target.name : "",
+    }));
   };
 
-  // Add new empty line item
-  const addItem = () => {
-    setItems([
-      ...items,
-      {
-        uuid: uuidv7(),
-        product_uuid: "",
-        product_name: "",
-        sku: "",
-        quantity: 1,
-        unit_price: 0,
-        total_price: 0,
-      },
-    ]);
-  };
-
-  // Remove line item (minimum 1)
-  const removeItem = (uuid: string) => {
-    if (items.length > 1) {
-      setItems((prev) => prev.filter((i) => i.uuid !== uuid));
-      // Clean up search state
-      setProductSearch((prev) => {
-        const newState = { ...prev };
-        delete newState[uuid];
-        return newState;
-      });
-      setProductSuggestions((prev) => {
-        const newState = { ...prev };
-        delete newState[uuid];
-        return newState;
-      });
-    }
-  };
-
-  // Reset items to single empty row
-  const resetItems = () => {
-    setItems([
-      {
-        uuid: uuidv7(),
-        product_uuid: "",
-        product_name: "",
-        sku: "",
-        quantity: 1,
-        unit_price: 0,
-        total_price: 0,
-      },
-    ]);
-    setProductSearch({});
-    setProductSuggestions({});
-    setShowProductDropdown({});
-  };
-
-  // Save purchase order (create or update)
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    setSaving(true);
-
-    try {
-      // Validate header
-      await purchaseOrderSchema.validate(formData, { abortEarly: false });
-
-      // Validate items (at least one non-empty item)
-      const validItems = items.filter(
-        (item) => item.product_name && item.product_name.trim() !== "",
-      );
-      if (validItems.length === 0) {
-        setErrors({ items: "At least one line item is required" });
-        setSaving(false);
-        return;
-      }
-
-      // Validate each item with updated schema
-      for (const item of validItems) {
-        await purchaseOrderItemSchema.validate(item, { abortEarly: false });
-      }
-
-      const now = new Date().toISOString();
-
-      if (editingUuid) {
-        // UPDATE existing PO
-        await db
-          .update(purchaseOrders)
-          .set({
-            vendor_uuid: formData.vendor_uuid, // Ensure snake_case matches your DB
-            vendor_name: formData.vendor_name,
-            status: formData.status,
-            issue_date: formData.issue_date,
-            expected_delivery_date: formData.expected_delivery_date || null,
-
-            // FIX: Ensure both subtotal and total_amount are updated
-            subtotal: totals.subtotal,
-            tax_amount: 0,
-            total_amount: totals.total, // Use totals.total from your useMemo
-            sync_status: "updated",
-            notes: formData.notes || null,
-            updated_at: now,
-          })
-          .where(eq(purchaseOrders.uuid, editingUuid));
-
-        // Delete old items
-        await db
-          .update(purchaseOrderItems)
-          .set({
-            sync_status: "deleted",
-            updated_at: now,
-            deleted_at: new Date().toISOString(),
-          })
-          .where(eq(purchaseOrderItems.purchase_order_uuid, editingUuid));
-
-        // Insert new items
-        for (const item of validItems) {
-          await db.insert(purchaseOrderItems).values({
-            uuid: uuidv7(),
-            purchase_order_uuid: editingUuid,
-            product_uuid: item.product_uuid,
-            product_name: item.product_name,
-            sku: item.sku || "",
-            quantity: item.quantity,
-            received_quantity: 0,
-            unit_price: item.unit_price,
-            // Ensure total_price per line item is also calculated
-            sync_status: "created",
-            total_price: (item.quantity || 0) * (item.unit_price || 0),
-            created_at: now,
-            updated_at: now,
-          });
-        }
-      } else {
-        // CREATE new PO - tax_amount set to 0
-        const poUuid = uuidv7();
-        await db.insert(purchaseOrders).values({
-          uuid: poUuid,
-          po_number: formData.po_number,
-          vendor_uuid: formData.vendor_uuid,
-          vendor_name: formData.vendor_name,
-          status: formData.status,
-          issue_date: formData.issue_date,
-          expected_delivery_date: formData.expected_delivery_date || null,
-          subtotal: totals.subtotal,
-          tax_amount: 0,
-          total_amount: totals.subtotal,
-          notes: formData.notes || null,
-          sync_status: "created",
-          tenant_id: getTenantId(),
-          created_at: now,
-          updated_at: now,
-        });
-
-        for (const item of validItems) {
-          await db.insert(purchaseOrderItems).values({
-            uuid: uuidv7(),
-            purchase_order_uuid: poUuid,
-            product_uuid: item.product_uuid,
-            product_name: item.product_name,
-            sku: item.sku || "",
-            quantity: item.quantity,
-            received_quantity: 0,
-            unit_price: item.unit_price,
-            total_price: (item.quantity || 0) * (item.unit_price || 0),
-            sync_status: "created",
-            tenant_id: getTenantId(),
-            created_at: now,
-            updated_at: now,
-          });
-        }
-      }
-
-      resetForm();
-      await loadPurchaseOrders();
-      setView("list");
-    } catch (err: any) {
-      if (err instanceof yup.ValidationError) {
-        const mappedErrors: Record<string, string> = {};
-        err.inner.forEach((e: any) => {
-          if (e.path) mappedErrors[e.path] = e.message;
-        });
-        setErrors(mappedErrors);
-      } else {
-        console.error("Error saving PO:", err);
-        setErrors({ general: "Failed to save purchase order" });
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Delete purchase order (soft delete)
-  const deletePurchaseOrder = async (uuid: string) => {
+  const loadPurchaseOrderForEdit = async (uuid: string) => {
     if (!db) return;
-    if (!confirm("Are you sure you want to delete this purchase order?"))
-      return;
-
     try {
-      await db
-        .update(purchaseOrders)
-        .set({ deleted_at: new Date().toISOString(), sync_status: "deleted" })
-        .where(eq(purchaseOrders.uuid, uuid));
-      await loadPurchaseOrders();
-    } catch (error) {
-      console.error("Error deleting PO:", error);
-      alert("Failed to delete purchase order");
+      const records = await db
+        .select()
+        .from(purchaseOrders)
+        .where(eq(purchaseOrders.uuid, uuid))
+        .limit(1);
+
+      if (records.length === 0) return;
+      const order = records[0];
+
+      // Initialize state context with the order's current status
+      stateContextRef.current = new PurchaseOrderStateContext(order.status);
+
+      const lines = await db
+        .select()
+        .from(purchaseOrderItems)
+        .where(
+          sql`${purchaseOrderItems.purchase_order_uuid} = ${uuid} AND ${purchaseOrderItems.deleted_at} IS NULL`,
+        );
+
+      setFormData({
+        po_number: order.po_number,
+        vendor_uuid: order.vendor_uuid,
+        vendor_name: order.vendor_name,
+        issue_date: order.issue_date,
+        expected_delivery_date: order.expected_delivery_date || "",
+        status: order.status,
+        notes: order.notes || "",
+      });
+
+      const mappedItems = lines.map((line: any) => ({
+        product_uuid: line.product_uuid,
+        product_name: line.product_name,
+        sku: line.sku,
+        quantity: line.quantity,
+        unit_price: line.unit_price,
+        received_quantity: line.received_quantity || 0,
+        _uuid: line.uuid,
+      }));
+      itemModel.setItems(mappedItems);
+    } catch (err) {
+      console.error("Failed loading PO for edit:", err);
     }
   };
 
-  // Start editing an existing PO
+  const generatePoNumber = async () => {
+    setGeneratingPoNumber(true);
+    try {
+      const poNumber = await invoke<string>("cmd_generate_po_number");
+      setFormData((prev: any) => ({ ...prev, po_number: poNumber }));
+    } catch (error) {
+      console.error("Failed to generate PO number:", error);
+      const year = new Date().getFullYear();
+      const random = Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, "0");
+      setFormData((prev: any) => ({
+        ...prev,
+        po_number: `PO-${year}-${random}`,
+      }));
+    } finally {
+      setGeneratingPoNumber(false);
+    }
+  };
+
+  const handleCreateNew = async () => {
+    resetForm();
+    stateContextRef.current = new PurchaseOrderStateContext("DRAFT");
+    await generatePoNumber();
+    setView("form");
+  };
+
   const startEdit = (uuid: string) => {
     setEditingUuid(uuid);
+    setErrors({});
     setView("form");
     loadPurchaseOrderForEdit(uuid);
   };
 
-  // Create new PO
-  const handleCreateNew = () => {
-    resetForm();
-    // Generate PO number: PO-YYYY-XXX
-    const year = new Date().getFullYear();
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0");
-    setFormData((prev) => ({
-      ...prev,
-      poNumber: `PO-${year}-${random}`,
-    }));
-    setView("form");
-  };
-
-  // Reset form to initial state
   const resetForm = () => {
     setEditingUuid(null);
+    stateContextRef.current = null;
     setFormData({
       po_number: "",
       vendor_uuid: "",
@@ -506,25 +225,260 @@ export function usePurchaseOrderViewModel() {
       status: "DRAFT",
       notes: "",
     });
-    resetItems();
+    itemModel.resetItems();
     setErrors({});
   };
 
-  // Cancel editing and go back to list
-  const cancelEdit = () => {
-    resetForm();
-    setView("list");
+  const deletePurchaseOrder = async (uuid: string) => {
+    if (!db) return;
+    if (!confirm("Are you sure you want to delete this purchase order?"))
+      return;
+    try {
+      const now = new Date().toISOString();
+      await db
+        .update(purchaseOrders)
+        .set({ deleted_at: now, sync_status: "deleted" })
+        .where(eq(purchaseOrders.uuid, uuid));
+
+      await db
+        .update(purchaseOrderItems)
+        .set({ deleted_at: now, sync_status: "deleted" })
+        .where(eq(purchaseOrderItems.purchase_order_uuid, uuid));
+
+      await loadData();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
+
+  const handleSave = async (e: any) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!db || saving) return;
+
+    setSaving(true);
+    setErrors({});
+
+    try {
+      await purchaseOrderSchema.validate(formData, { abortEarly: false });
+
+      if (itemModel.items.length === 0) {
+        setErrors({ items: "At least one line item is required" });
+        setSaving(false);
+        return;
+      }
+
+      const timestamp = new Date().toISOString();
+      const subtotal = itemModel.totals.subtotal;
+      const totalAmount = subtotal;
+
+      // --- NEW ORDER ---
+      if (!editingUuid) {
+        const orderUuid = uuidv7();
+        await db.insert(purchaseOrders).values({
+          uuid: orderUuid,
+          po_number: formData.po_number,
+          vendor_uuid: formData.vendor_uuid,
+          vendor_name: formData.vendor_name,
+          issue_date: formData.issue_date,
+          expected_delivery_date: formData.expected_delivery_date || null,
+          status: formData.status,
+          subtotal: subtotal,
+          total_amount: totalAmount,
+          notes: formData.notes || null,
+          created_at: timestamp,
+          updated_at: timestamp,
+          sync_status: "inserted",
+        });
+
+        for (const line of itemModel.items) {
+          await db.insert(purchaseOrderItems).values({
+            uuid: uuidv7(),
+            purchase_order_uuid: orderUuid,
+            product_uuid: line.product_uuid,
+            product_name: line.product_name,
+            sku: line.sku,
+            quantity: line.quantity,
+            received_quantity: line.received_quantity || 0,
+            unit_price: line.unit_price,
+            total_price: line.quantity * line.unit_price,
+            created_at: timestamp,
+            updated_at: timestamp,
+            sync_status: "inserted",
+          });
+        }
+      }
+      // --- UPDATE EXISTING ORDER ---
+      else {
+        const ctx = stateContextRef.current;
+        if (!ctx) throw new Error("State context not initialized");
+        if (ctx.isLocked()) {
+          throw new Error(
+            "Cannot modify a locked purchase order (Received or Cancelled).",
+          );
+        }
+
+        // Helper to compute status from received quantities
+        const computeReceivingStatus = (items: any[]): string => {
+          if (items.length === 0) return "DRAFT";
+
+          const allFullyReceived = items.every(
+            (i) => (i.received_quantity || 0) >= i.quantity,
+          );
+          const anyPartial = items.some(
+            (i) =>
+              (i.received_quantity || 0) > 0 &&
+              (i.received_quantity || 0) < i.quantity,
+          );
+
+          if (allFullyReceived) return "RECEIVED";
+          if (anyPartial) return "PARTIALLY_RECEIVED";
+
+          // If no receiving yet, keep whatever was set manually
+          // e.g. SENT or CANCELLED should remain untouched
+          return items.some((i) => (i.received_quantity || 0) > 0)
+            ? "DRAFT"
+            : (formData.status ?? "DRAFT");
+        };
+
+        // 1. Update received quantities if order is not in DRAFT
+        if (!ctx.canEditItems()) {
+          const existingItems = await db
+            .select()
+            .from(purchaseOrderItems)
+            .where(
+              sql`${purchaseOrderItems.purchase_order_uuid} = ${editingUuid} AND ${purchaseOrderItems.deleted_at} IS NULL`,
+            );
+
+          for (const existing of existingItems) {
+            const updatedItem = itemModel.items.find(
+              (i) => i.product_uuid === existing.product_uuid,
+            );
+            if (
+              updatedItem &&
+              updatedItem.received_quantity !== existing.received_quantity
+            ) {
+              await db
+                .update(purchaseOrderItems)
+                .set({
+                  received_quantity: updatedItem.received_quantity || 0,
+                  updated_at: timestamp,
+                  sync_status: "updated",
+                })
+                .where(eq(purchaseOrderItems.uuid, existing.uuid));
+            }
+          }
+        }
+
+        // 2. Compute final status based on current items
+        const newStatus = computeReceivingStatus(itemModel.items);
+
+        // 3. Prepare header updates (respect permissions from original state)
+        const headerUpdates: any = {
+          updated_at: timestamp,
+          sync_status: "updated",
+          status: newStatus,
+        };
+        if (ctx.canEditDeliveryDate()) {
+          headerUpdates.expected_delivery_date =
+            formData.expected_delivery_date || null;
+        }
+        if (ctx.canEditNotes()) {
+          headerUpdates.notes = formData.notes || null;
+        }
+        if (ctx.canEditHeader()) {
+          headerUpdates.po_number = formData.po_number;
+          headerUpdates.vendor_uuid = formData.vendor_uuid;
+          headerUpdates.vendor_name = formData.vendor_name;
+          headerUpdates.issue_date = formData.issue_date;
+          headerUpdates.subtotal = subtotal;
+          headerUpdates.total_amount = totalAmount;
+        }
+
+        await db
+          .update(purchaseOrders)
+          .set(headerUpdates)
+          .where(eq(purchaseOrders.uuid, editingUuid));
+
+        // 4. Full item replacement only for DRAFT orders
+        if (ctx.canEditItems()) {
+          await db
+            .update(purchaseOrderItems)
+            .set({ deleted_at: timestamp, sync_status: "deleted" })
+            .where(eq(purchaseOrderItems.purchase_order_uuid, editingUuid));
+
+          for (const line of itemModel.items) {
+            await db.insert(purchaseOrderItems).values({
+              uuid: uuidv7(),
+              purchase_order_uuid: editingUuid,
+              product_uuid: line.product_uuid,
+              product_name: line.product_name,
+              sku: line.sku,
+              quantity: line.quantity,
+              received_quantity: line.received_quantity || 0,
+              unit_price: line.unit_price,
+              total_price: line.quantity * line.unit_price,
+              created_at: timestamp,
+              updated_at: timestamp,
+              sync_status: "inserted",
+            });
+          }
+        }
+      }
+
+      resetForm();
+      setView("list");
+      await loadData();
+    } catch (err: any) {
+      if (err instanceof yup.ValidationError) {
+        const mapped: Record<string, string> = {};
+        err.inner.forEach((e: any) => {
+          if (e.path) mapped[e.path] = e.message;
+        });
+        setErrors(mapped);
+      } else {
+        console.error("Save error:", err);
+        setErrors({ general: err.message || "Failed to save purchase order." });
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "DRAFT":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+      case "SENT":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "PARTIALLY_RECEIVED":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "RECEIVED":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const statePermissions = {
+    canEditHeader: stateContextRef.current?.canEditHeader() ?? true,
+    canEditItems: stateContextRef.current?.canEditItems() ?? true,
+    canReceiveItems: stateContextRef.current?.canReceiveItems() ?? false,
+    canEditDeliveryDate: stateContextRef.current?.canEditDeliveryDate() ?? true,
+    canEditNotes: stateContextRef.current?.canEditNotes() ?? true,
+    canManualStatusChange:
+      stateContextRef.current?.canManualStatusChange() ?? true,
+    isLocked: stateContextRef.current?.isLocked() ?? false,
   };
 
   return {
-    // View state
     view,
     setView,
     loading,
     saving,
     errors,
-
-    // List view data
+    editingUuid,
     poList: paginatedData,
     currentPage,
     totalPages,
@@ -534,35 +488,30 @@ export function usePurchaseOrderViewModel() {
     setPageSize,
     searchTerm,
     setSearchTerm,
-
-    // Form data
     formData,
     setFormData,
-    items,
-    totals,
-    editingUuid,
-    suppliers,
-
-    // Item operations
-    updateItem,
-    addItem,
-    removeItem,
-
-    // Product search
-    productSearch,
-    setProductSearch,
-    productSuggestions,
-    showProductDropdown,
-    setShowProductDropdown,
-    searchProducts,
-    clearProductSearch,
-
-    // Actions
-    handleSave,
-    deletePurchaseOrder,
-    startEdit,
+    setVendorSelected,
     handleCreateNew,
-    cancelEdit,
-    resetForm,
+    startEdit,
+    deletePurchaseOrder,
+    handleSave,
+    suppliers: suppliersList,
+    getStatusColor,
+
+    items: itemModel.items,
+    totals: itemModel.totals,
+    addItem: itemModel.addItem,
+    removeItem: itemModel.removeItem,
+    updateItem: itemModel.updateItem,
+
+    productSearch: lookupModel.productSearch,
+    setProductSearch: lookupModel.setProductSearch,
+    productSuggestions: lookupModel.productSuggestions,
+    showProductDropdown: lookupModel.showProductDropdown,
+    setShowProductDropdown: lookupModel.setShowProductDropdown,
+    searchProducts: lookupModel.searchProducts,
+    clearProductSearch: lookupModel.clearProductSearch,
+
+    ...statePermissions,
   };
 }

@@ -1,22 +1,21 @@
 import { useState, useMemo } from "react";
 
 interface UsePaginationProps<T> {
-  data: T[];
-  initialPageSize?: number;
-  // We define which keys of the object we want to search through
-  searchKeys: (keyof T)[];
+  data?: T[]; // make optional, default to []
+  initialPageSize?: number; // default handled inside hook
+  searchKeys?: (keyof T)[]; // make optional, default to []
 }
 
 export function usePagination<T>({
-  data,
-  initialPageSize = 5,
-  searchKeys,
+  data = [], // defensive default
+  initialPageSize = 5, // safe default
+  searchKeys = [], // defensive default
 }: UsePaginationProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 1. First, Filter the data based on the searchTerm
+  // 1. Filter the data based on the searchTerm
   const filteredData = useMemo(() => {
     if (!searchTerm) return data;
 
@@ -24,13 +23,17 @@ export function usePagination<T>({
 
     return data.filter((item) =>
       searchKeys.some((key) => {
-        const value = item[key];
-        return value && String(value).toLowerCase().includes(lowerSearch);
+        const value = item?.[key];
+        return (
+          value !== undefined &&
+          value !== null &&
+          String(value).toLowerCase().includes(lowerSearch)
+        );
       }),
     );
   }, [data, searchTerm, searchKeys]);
 
-  // 2. Calculate counts based on FILTERED data, not raw data
+  // 2. Calculate counts based on FILTERED data
   const totalCount = filteredData.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
@@ -43,13 +46,15 @@ export function usePagination<T>({
 
   // 4. Handle search changes (reset to page 1)
   const handleSearch = (term: string) => {
-    setSearchTerm(term);
+    setSearchTerm(term ?? ""); // defensive against null/undefined
     setCurrentPage(1);
   };
 
   // 5. Handle page size changes safely
   const handlePageSizeChange = (newSize: number) => {
-    setPageSize(newSize);
+    const safeSize =
+      Number.isFinite(newSize) && newSize > 0 ? newSize : initialPageSize;
+    setPageSize(safeSize);
     setCurrentPage(1);
   };
 
@@ -61,7 +66,7 @@ export function usePagination<T>({
   return {
     paginatedData,
     searchTerm,
-    setSearchTerm: handleSearch, // Use the wrapper to reset page 1
+    setSearchTerm: handleSearch,
     currentPage,
     setCurrentPage,
     pageSize,

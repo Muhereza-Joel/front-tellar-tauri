@@ -204,6 +204,11 @@ pub fn run() {
                 "suppliers".to_string(),
                 "sales".to_string(),
                 "sale_items".to_string(),
+                "service_sales".to_string(),
+                "service_sale_items".to_string(),
+                "discounts".to_string(),
+                "expenses".to_string(),
+                "notes".to_string(),
             ];
 
             let api_url = "https://api.famkonect.com/api/v1".to_string(); // change to your server URL

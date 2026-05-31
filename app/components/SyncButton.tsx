@@ -59,6 +59,8 @@ const TABLE_GROUPS = [
       "service_variants",
       "attribute_definitions",
       "product_variants",
+      "discounts",
+      "notes",
     ],
   },
   {
@@ -71,6 +73,9 @@ const TABLE_GROUPS = [
       "suppliers",
       "sales",
       "sale_items",
+      "service_sales",
+      "service_sale_items",
+      "expenses",
     ],
   },
 ];

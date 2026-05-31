@@ -82,7 +82,7 @@ export default function Home() {
       title: "Expenses",
       icon: <Activity size={20} />,
       href: "/sales/expenses",
-      permission: "accounts_module",
+      permission: "expenses_module",
       desc: "Operational Costs",
     },
     {
@@ -90,7 +90,7 @@ export default function Home() {
       title: "Reports",
       icon: <Bell size={20} />,
       href: "/sales/reports",
-      permission: "accounts_module",
+      permission: "reports_module",
       desc: "Analytics & Insights",
     },
     {

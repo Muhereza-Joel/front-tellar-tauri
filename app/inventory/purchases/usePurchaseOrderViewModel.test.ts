@@ -144,6 +144,7 @@ describe("usePurchaseOrderViewModel Hook Suite", () => {
 
     (useAuth as jest.Mock).mockReturnValue({
       hasPermission: () => true,
+      getTenantId: () => "mocked-tenant-id",
     });
 
     (require("@tauri-apps/api/core").invoke as jest.Mock).mockResolvedValue(

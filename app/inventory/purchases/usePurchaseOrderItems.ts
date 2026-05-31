@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 export function usePurchaseOrderItems() {
+  const { getTenantId } = useAuth();
   const [items, setItems] = useState<any[]>([]);
 
   const resetItems = useCallback(() => {
@@ -11,6 +13,7 @@ export function usePurchaseOrderItems() {
 
   const addItem = useCallback((product: any) => {
     setItems((prev) => {
+      const tenantId = getTenantId();
       const existingIndex = prev.findIndex(
         (i) => i.product_uuid === product.uuid,
       );
@@ -26,8 +29,10 @@ export function usePurchaseOrderItems() {
           product_name: product.name,
           sku: product.sku || "",
           quantity: 1,
+          tenant_id: tenantId,
           unit_price: product.cost_price || 0,
           received_quantity: 0,
+          sync_status: "created",
         },
       ];
     });

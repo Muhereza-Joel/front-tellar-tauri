@@ -219,15 +219,22 @@ impl SyncEngine {
         // io::stdout().flush().unwrap();
 
 
-        let res = self.client
-            .get(url)
-            .header("Authorization", format!("Bearer {}", jwt))
-            .header("X-Tenant-UUID", tenant_uuid)
-            .send()
-            .await?
-            .json::<PullResponse>()
-            .await?;
-        Ok(res)
+        let response = self.client
+        .get(url)
+        .header("Authorization", format!("Bearer {}", jwt))
+        .header("X-Tenant-UUID", tenant_uuid)
+        .send()
+        .await?;
+
+        // Check for HTTP errors before deserializing
+        if !response.status().is_success() {
+            let status = response.status();
+            let text = response.text().await?;
+            return Err(anyhow::anyhow!("Server error {}: {}", status, text));
+        }
+
+        let pull_response = response.json::<PullResponse>().await?;
+        Ok(pull_response)
     }
 
     // -------------------------------------------------------------------------

@@ -7,6 +7,8 @@ export const sales = sqliteTable("sales", {
   customer_id: text(),
   type: text().notNull().default("DIRECT"), // DIRECT or INVOICE
   status: text().notNull().default("COMPLETED"),
+  discount_id: text(),
+  discount_amount: real().default(0),
   total_amount: real().default(0).notNull(),
   amount_paid: real().default(0).notNull(),
   tenant_id: text(),
@@ -23,9 +25,7 @@ export const sales = sqliteTable("sales", {
 export const saleItems = sqliteTable("sale_items", {
   uuid: text().primaryKey().notNull(),
   branch_id: text(),
-  sale_id: text()
-    .notNull()
-    .references(() => sales.uuid),
+  sale_id: text().notNull(),
   product_id: text().notNull(),
   variant_id: text(),
   quantity: real().notNull().default(1),

@@ -6,7 +6,8 @@ import { sales, saleItems } from "../../db/schemas/sales";
 import { customers } from "../../db/schemas/customer";
 import { products } from "../../db/schemas/product";
 import { productVariants } from "../../db/schemas/product_variants";
-import { units } from "../../db/schemas/units"; // <-- import units table
+import { units } from "../../db/schemas/units";
+import { discounts, Discount } from "../../db/schemas/discounts";
 import { eq, isNull, desc, and, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import * as yup from "yup";
@@ -30,6 +31,8 @@ interface SaleWithDetails {
   status: string;
   total_amount: number;
   amount_paid: number;
+  discount_amount: number; // <-- Added to list model
+  discount_id: string | null;
   created_at: string;
   deleted_at: string | null;
   items_summary: string;
@@ -41,6 +44,8 @@ const saleValidationSchema = yup.object({
   status: yup.string().oneOf(["COMPLETED", "PENDING", "CANCELLED"]).required(),
   amount_paid: yup.number().min(0).required(),
   cartItems: yup.array().min(1, "At least one item is required"),
+  discount_id: yup.string().nullable(),
+  discount_amount: yup.number().min(0).required(),
 });
 
 export function useSalesViewModel() {
@@ -51,6 +56,7 @@ export function useSalesViewModel() {
   const [customersList, setCustomersList] = useState<any[]>([]);
   const [productsList, setProductsList] = useState<any[]>([]);
   const [variantsList, setVariantsList] = useState<any[]>([]);
+  const [discountsList, setDiscountsList] = useState<Discount[]>([]);
   const [unitsMap, setUnitsMap] = useState<
     Map<string, { singular: string; plural: string }>
   >(new Map());
@@ -69,6 +75,9 @@ export function useSalesViewModel() {
   const [amountPaidRaw, setAmountPaidRaw] = useState<string>("0");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [isDiscountEnabled, setIsDiscountEnabled] = useState<boolean>(false);
+  const [selectedDiscountUuid, setSelectedDiscountUuid] = useState<string>("");
+
   const [selectedProductUuid, setSelectedProductUuid] = useState<string>("");
   const [selectedVariantUuid, setSelectedVariantUuid] = useState<string>("");
   const [quantityToAdd, setQuantityToAdd] = useState(1);
@@ -86,6 +95,7 @@ export function useSalesViewModel() {
       loadSales();
       loadCustomers();
       loadProductsAndVariants();
+      loadDiscounts();
     }
   }, [db]);
 
@@ -102,6 +112,8 @@ export function useSalesViewModel() {
           status: sales.status,
           total_amount: sales.total_amount,
           amount_paid: sales.amount_paid,
+          discount_amount: sales.discount_amount, // <-- Selected field
+          discount_id: sales.discount_id, // <-- Selected field
           created_at: sales.created_at,
           deleted_at: sales.deleted_at,
         })
@@ -111,7 +123,7 @@ export function useSalesViewModel() {
         .orderBy(desc(sales.created_at));
 
       const salesWithItems = await Promise.all(
-        salesData.map(async (sale: { uuid: string }) => {
+        salesData.map(async (sale: any) => {
           const items = await db
             .select({
               product_id: saleItems.product_id,
@@ -120,7 +132,7 @@ export function useSalesViewModel() {
               product_name: products.name,
               variant_type: productVariants.attribute_type,
               variant_value: productVariants.attribute_value,
-              unit_uom: products.uom, // this is the unit UUID
+              unit_uom: products.uom,
             })
             .from(saleItems)
             .leftJoin(products, eq(saleItems.product_id, products.uuid))
@@ -136,9 +148,7 @@ export function useSalesViewModel() {
               if (item.variant_type && item.variant_value) {
                 name += ` (${item.variant_type}: ${item.variant_value})`;
               }
-              // Use the unitsMap to get the correct plural form
               const unitInfo = unitsMap.get(item.unit_uom);
-
               const unitLabel = unitInfo?.plural || "units";
               return `${name} x${item.quantity} ${unitLabel}`;
             })
@@ -167,6 +177,23 @@ export function useSalesViewModel() {
     setCustomersList(results);
   };
 
+  const loadDiscounts = async () => {
+    if (!db) return;
+    const nowStr = new Date().toISOString().split("T")[0];
+    const results = await db
+      .select()
+      .from(discounts)
+      .where(
+        and(
+          eq(discounts.isActive, true),
+          isNull(discounts.deleted_at),
+          sql`(${discounts.startDate} IS NULL OR ${discounts.startDate} <= ${nowStr})`,
+          sql`(${discounts.endDate} IS NULL OR ${discounts.endDate} >= ${nowStr})`,
+        ),
+      );
+    setDiscountsList(results);
+  };
+
   const loadProductsAndVariants = async () => {
     if (!db) return;
     const prods = await db
@@ -178,7 +205,6 @@ export function useSalesViewModel() {
       .from(productVariants)
       .where(eq(productVariants.is_active, true));
 
-    // Load units and build a map from unit UUID -> { singular, plural }
     const unitsList = await db
       .select({
         uuid: units.uuid,
@@ -198,7 +224,6 @@ export function useSalesViewModel() {
     setVariantsList(vars);
   };
 
-  // Date filtering
   const filteredByDate = (sale: SaleWithDetails) => {
     if (!dateFrom && !dateTo) return true;
     const saleDate = new Date(sale.created_at).toISOString().split("T")[0];
@@ -257,6 +282,29 @@ export function useSalesViewModel() {
       ? selectedProduct.selling_price
       : 0;
   const amountPaid = parseFloat(amountPaidRaw) || 0;
+
+  const subtotalAmount = cartItems.reduce(
+    (sum, item) => sum + item.subtotal,
+    0,
+  );
+
+  const activeDiscount = discountsList.find(
+    (d) => d.uuid === selectedDiscountUuid,
+  );
+  let discountAmount = 0;
+  if (isDiscountEnabled && activeDiscount) {
+    if (activeDiscount.type === "PERCENTAGE") {
+      discountAmount = (subtotalAmount * activeDiscount.value) / 100;
+    } else if (activeDiscount.type === "FIXED") {
+      discountAmount = activeDiscount.value;
+    }
+  }
+
+  if (discountAmount > subtotalAmount) {
+    discountAmount = subtotalAmount;
+  }
+
+  const totalAmount = Math.max(0, subtotalAmount - discountAmount);
 
   const addToCart = () => {
     if (!selectedProductUuid) {
@@ -324,10 +372,11 @@ export function useSalesViewModel() {
     setCartItems(cartItems.filter((_, i) => i !== index));
   };
 
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
-
   const saveSale = async () => {
     setErrors({});
+    const appliedDiscountId =
+      isDiscountEnabled && selectedDiscountUuid ? selectedDiscountUuid : null;
+
     try {
       await saleValidationSchema.validate(
         {
@@ -336,6 +385,8 @@ export function useSalesViewModel() {
           status: saleStatus,
           amount_paid: amountPaid,
           cartItems,
+          discount_id: appliedDiscountId,
+          discount_amount: discountAmount,
         },
         { abortEarly: false },
       );
@@ -346,6 +397,7 @@ export function useSalesViewModel() {
       if (!db) return;
       const saleUuid = uuidv7();
       const now = new Date().toISOString();
+
       await db.insert(sales).values({
         uuid: saleUuid,
         customer_id: selectedCustomer?.uuid || null,
@@ -353,11 +405,14 @@ export function useSalesViewModel() {
         status: saleStatus,
         total_amount: totalAmount,
         amount_paid: amountPaid,
+        discount_id: appliedDiscountId,
+        discount_amount: discountAmount,
         tenant_id: getTenantId(),
         sync_status: "created",
         created_at: now,
         updated_at: now,
       });
+
       for (const item of cartItems) {
         await db.insert(saleItems).values({
           uuid: uuidv7(),
@@ -389,31 +444,38 @@ export function useSalesViewModel() {
     }
   };
 
-  const updateSalePayment = async (saleUuid: string, newAmountPaid: number) => {
+  // UPDATED: Added discountAmount parameter to save edits back into the ledger
+  const updateSalePayment = async (
+    saleUuid: string,
+    newAmountPaid: number,
+    newDiscountAmount: number,
+  ) => {
     if (!db) throw new Error("Database not initialized");
+
+    // Recalculate dynamic totals securely based on original lines subtotal items
+    const originalItems = await db
+      .select({ subtotal: saleItems.subtotal })
+      .from(saleItems)
+      .where(eq(saleItems.sale_id, saleUuid));
+    const itemsSubtotal = originalItems.reduce(
+      (acc: number, cur: any) => acc + cur.subtotal,
+      0,
+    );
+    const updatedTotalBill = Math.max(0, itemsSubtotal - newDiscountAmount);
+
     await db
       .update(sales)
       .set({
         sync_status: "updated",
         amount_paid: newAmountPaid,
+        discount_amount: newDiscountAmount,
+        total_amount: updatedTotalBill,
         updated_at: new Date().toISOString(),
-        status:
-          newAmountPaid >= (await getSaleTotal(saleUuid))
-            ? "COMPLETED"
-            : undefined,
+        status: newAmountPaid >= updatedTotalBill ? "COMPLETED" : "PENDING",
       })
       .where(eq(sales.uuid, saleUuid));
-    await loadSales();
-  };
 
-  const getSaleTotal = async (saleUuid: string): Promise<number> => {
-    if (!db) return 0;
-    const result = await db
-      .select({ total: sales.total_amount })
-      .from(sales)
-      .where(eq(sales.uuid, saleUuid))
-      .limit(1);
-    return result[0]?.total || 0;
+    await loadSales();
   };
 
   const getSaleDetails = async (saleUuid: string) => {
@@ -427,6 +489,8 @@ export function useSalesViewModel() {
         status: sales.status,
         total_amount: sales.total_amount,
         amount_paid: sales.amount_paid,
+        discount_amount: sales.discount_amount, // <-- Selected field
+        discount_id: sales.discount_id, // <-- Selected field
         created_at: sales.created_at,
       })
       .from(sales)
@@ -460,6 +524,8 @@ export function useSalesViewModel() {
     setSelectedProductUuid("");
     setSelectedVariantUuid("");
     setQuantityToAdd(1);
+    setIsDiscountEnabled(false);
+    setSelectedDiscountUuid("");
     setErrors({});
   };
 
@@ -473,6 +539,8 @@ export function useSalesViewModel() {
     saleStatus,
     amountPaidRaw,
     setAmountPaidRaw,
+    subtotalAmount,
+    discountAmount,
     totalAmount,
     errors,
     productOptions,
@@ -511,5 +579,10 @@ export function useSalesViewModel() {
     refreshSales,
     getSaleDetails,
     updateSalePayment,
+    discountsList,
+    isDiscountEnabled,
+    setIsDiscountEnabled,
+    selectedDiscountUuid,
+    setSelectedDiscountUuid,
   };
 }

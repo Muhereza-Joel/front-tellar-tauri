@@ -38,10 +38,7 @@ export const purchaseOrders = sqliteTable("purchase_orders", {
 // 2. Purchase Order Items (Lines)
 export const purchaseOrderItems = sqliteTable("purchase_order_items", {
   uuid: text().primaryKey().notNull().unique(),
-  purchase_order_uuid: text()
-    .notNull()
-    .references(() => purchaseOrders.uuid, { onDelete: "cascade" }),
-
+  purchase_order_uuid: text().notNull(),
   product_uuid: text().notNull(),
   product_name: text().notNull(),
   sku: text().notNull(),

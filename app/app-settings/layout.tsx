@@ -37,7 +37,7 @@ export default function UserManagementLayout({
   ];
 
   return (
-    <ModuleLayout title="ApplicationSettings" items={sidebarItems}>
+    <ModuleLayout title="SETTINGS MODULE" items={sidebarItems}>
       {children}
     </ModuleLayout>
   );

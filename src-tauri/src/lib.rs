@@ -16,9 +16,98 @@ use tokio::sync::Mutex;
 
 
 include!(concat!(env!("OUT_DIR"), "/migrations.rs"));
+const TRIGGER_SCHEMA_VERSION: i32 = 1; // Increment this when you change triggers
 
 struct AppState {
     db_pool: SqlitePool,
+}
+
+async fn ensure_inventory_triggers(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    // Check current installed trigger version
+    let installed_version: Option<i32> = sqlx::query_scalar(
+        "SELECT CAST(value AS INTEGER) FROM app_system_info WHERE key = 'triggers_version'"
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    if installed_version == Some(TRIGGER_SCHEMA_VERSION) {
+        return Ok(()); // up-to-date
+    }
+
+    // Drop existing triggers if we're upgrading (optional but clean)
+    // This prevents "trigger already exists" errors when changing logic
+    sqlx::query("DROP TRIGGER IF EXISTS trg_sale_items_stock_decrement")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TRIGGER IF EXISTS trg_sale_items_stock_sync")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TRIGGER IF EXISTS trg_sale_items_stock_increment")
+        .execute(pool)
+        .await?;
+
+    // Create new/updated triggers with sync_status updates
+    let trigger_sql = "
+        CREATE TRIGGER IF NOT EXISTS trg_sale_items_stock_decrement
+        AFTER INSERT ON sale_items
+        BEGIN
+            UPDATE products 
+            SET current_stock = current_stock - NEW.quantity,
+                sync_status = 'updated',
+                updated_at = datetime('now')
+            WHERE uuid = NEW.product_id AND NEW.variant_id IS NULL;
+
+            UPDATE product_variants 
+            SET current_stock = current_stock - NEW.quantity,
+                sync_status = 'updated',
+                updated_at = datetime('now')
+            WHERE uuid = NEW.variant_id;
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_sale_items_stock_sync
+        AFTER UPDATE OF quantity ON sale_items
+        BEGIN
+            UPDATE products 
+            SET current_stock = current_stock - (NEW.quantity - OLD.quantity),
+                sync_status = 'updated',
+                updated_at = datetime('now')
+            WHERE uuid = NEW.product_id AND NEW.variant_id IS NULL;
+
+            UPDATE product_variants 
+            SET current_stock = current_stock - (NEW.quantity - OLD.quantity),
+                sync_status = 'updated',
+                updated_at = datetime('now')
+            WHERE uuid = NEW.variant_id;
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_sale_items_stock_increment
+        AFTER DELETE ON sale_items
+        BEGIN
+            UPDATE products 
+            SET current_stock = current_stock + OLD.quantity,
+                sync_status = 'updated',
+                updated_at = datetime('now')
+            WHERE uuid = OLD.product_id AND OLD.variant_id IS NULL;
+
+            UPDATE product_variants 
+            SET current_stock = current_stock + OLD.quantity,
+                sync_status = 'updated',
+                updated_at = datetime('now')
+            WHERE uuid = OLD.variant_id;
+        END;
+    ";
+
+    sqlx::query(trigger_sql).execute(pool).await?;
+
+    // Store the new version
+    sqlx::query(
+        "INSERT OR REPLACE INTO app_system_info (key, value) VALUES ('triggers_version', ?)"
+    )
+    .bind(TRIGGER_SCHEMA_VERSION.to_string())
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
 
 #[tauri::command]
@@ -87,6 +176,10 @@ pub fn run() {
             let db_url = format!("sqlite:{}", db_path.to_str().unwrap());
             let db_pool = tauri::async_runtime::block_on(SqlitePool::connect(&db_url))
                 .expect("Failed to create SQLite pool for sync engine");
+
+            // After migrations have been applied (plugin handles that), run triggers
+            tauri::async_runtime::block_on(ensure_inventory_triggers(&db_pool))
+                .expect("Failed to create inventory triggers");
 
             // Manage AppState for PO/SKU generator
             app.manage(AppState { db_pool: db_pool.clone() });

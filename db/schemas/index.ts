@@ -18,3 +18,7 @@ export * from "./service_variants";
 export * from "./attribute_definitions";
 export * from "./bookings";
 export * from "./sales";
+export * from "./service_sales";
+export * from "./discounts";
+export * from "./notes";
+export * from "./expenses";

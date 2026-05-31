@@ -46,7 +46,7 @@ export default function UserManagementLayout({
   });
 
   return (
-    <ModuleLayout title="Authorization Settings" items={sidebarItems}>
+    <ModuleLayout title="ACCOUNTS MODULE" items={sidebarItems}>
       {children}
     </ModuleLayout>
   );

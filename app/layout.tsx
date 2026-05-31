@@ -10,6 +10,7 @@ import { PermissionSyncInitializer } from "./components/PermissionSyncInitialize
 import LicenseGuard from "./components/LicenseGuard";
 import { NotificationProvider } from "./context/NotificationContext";
 import UpdateNotification from "./components/UpdateNotification";
+import TimeGuard from "./components/guards/TimeGuard";
 
 export const metadata: Metadata = {
   title: "FrontTela",
@@ -29,11 +30,13 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <SyncTauriTheme />
           <NotificationProvider>
-            <LicenseGuard>
-              <AuthProvider>
-                <AuthGuard>{children}</AuthGuard>
-              </AuthProvider>
-            </LicenseGuard>
+            <TimeGuard>
+              <LicenseGuard>
+                <AuthProvider>
+                  <AuthGuard>{children}</AuthGuard>
+                </AuthProvider>
+              </LicenseGuard>
+            </TimeGuard>
             <UpdateNotification />
           </NotificationProvider>
         </ThemeProvider>

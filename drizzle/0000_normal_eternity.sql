@@ -108,6 +108,42 @@ CREATE TABLE `customers` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `customers_uuid_unique` ON `customers` (`uuid`);--> statement-breakpoint
 CREATE UNIQUE INDEX `customers_email_unique` ON `customers` (`email`);--> statement-breakpoint
+CREATE TABLE `discounts` (
+	`uuid` text PRIMARY KEY NOT NULL,
+	`tenant_id` text NOT NULL,
+	`branch_id` text,
+	`name` text NOT NULL,
+	`type` text NOT NULL,
+	`value` real NOT NULL,
+	`start_date` text,
+	`end_date` text,
+	`is_active` integer DEFAULT true NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`deleted_at` text,
+	`sync_status` text DEFAULT 'created'
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `discounts_uuid_unique` ON `discounts` (`uuid`);--> statement-breakpoint
+CREATE TABLE `expenses` (
+	`uuid` text PRIMARY KEY NOT NULL,
+	`tenant_id` text NOT NULL,
+	`branch_id` text,
+	`title` text NOT NULL,
+	`category` text NOT NULL,
+	`amount` real NOT NULL,
+	`expense_date` text NOT NULL,
+	`payment_method` text NOT NULL,
+	`vendor` text,
+	`notes` text,
+	`is_active` integer DEFAULT true NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`deleted_at` text,
+	`sync_status` text DEFAULT 'created'
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `expenses_uuid_unique` ON `expenses` (`uuid`);--> statement-breakpoint
 CREATE TABLE `tenants` (
 	`uuid` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
@@ -278,8 +314,7 @@ CREATE TABLE `purchase_order_items` (
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`deleted_at` text,
-	`sync_status` text DEFAULT 'created',
-	FOREIGN KEY (`purchase_order_uuid`) REFERENCES `purchase_orders`(`uuid`) ON UPDATE no action ON DELETE cascade
+	`sync_status` text DEFAULT 'created'
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `purchase_order_items_uuid_unique` ON `purchase_order_items` (`uuid`);--> statement-breakpoint
@@ -375,8 +410,7 @@ CREATE TABLE `sale_items` (
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`deleted_at` text,
-	`sync_status` text DEFAULT 'created',
-	FOREIGN KEY (`sale_id`) REFERENCES `sales`(`uuid`) ON UPDATE no action ON DELETE no action
+	`sync_status` text DEFAULT 'created'
 );
 --> statement-breakpoint
 CREATE TABLE `sales` (
@@ -385,6 +419,8 @@ CREATE TABLE `sales` (
 	`customer_id` text,
 	`type` text DEFAULT 'DIRECT' NOT NULL,
 	`status` text DEFAULT 'COMPLETED' NOT NULL,
+	`discount_id` text,
+	`discount_amount` real DEFAULT 0,
 	`total_amount` real DEFAULT 0 NOT NULL,
 	`amount_paid` real DEFAULT 0 NOT NULL,
 	`tenant_id` text,
@@ -393,3 +429,55 @@ CREATE TABLE `sales` (
 	`deleted_at` text,
 	`sync_status` text DEFAULT 'created'
 );
+--> statement-breakpoint
+CREATE TABLE `service_sale_items` (
+	`uuid` text PRIMARY KEY NOT NULL,
+	`service_sale_id` text NOT NULL,
+	`service_id` text NOT NULL,
+	`variant_id` text,
+	`quantity` integer DEFAULT 1 NOT NULL,
+	`unit_price` real DEFAULT 0 NOT NULL,
+	`subtotal` real DEFAULT 0 NOT NULL,
+	`is_rental` integer DEFAULT false,
+	`rental_unit` text,
+	`deposit_captured` real DEFAULT 0,
+	`branch_id` text,
+	`tenant_id` text,
+	`sync_status` text DEFAULT 'created',
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `service_sales` (
+	`uuid` text PRIMARY KEY NOT NULL,
+	`customer_id` text,
+	`type` text DEFAULT 'DIRECT' NOT NULL,
+	`status` text DEFAULT 'COMPLETED' NOT NULL,
+	`discount_id` text,
+	`discount_amount` real DEFAULT 0,
+	`total_amount` real DEFAULT 0 NOT NULL,
+	`amount_paid` real DEFAULT 0 NOT NULL,
+	`tenant_id` text,
+	`branch_id` text,
+	`sync_status` text DEFAULT 'created',
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`deleted_at` text
+);
+--> statement-breakpoint
+CREATE TABLE `notes` (
+	`uuid` text PRIMARY KEY NOT NULL,
+	`tenant_id` text NOT NULL,
+	`branch_id` text,
+	`title` text NOT NULL,
+	`category` text NOT NULL,
+	`content` text NOT NULL,
+	`reference_id` text,
+	`is_active` integer DEFAULT true NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`deleted_at` text,
+	`sync_status` text DEFAULT 'created'
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `notes_uuid_unique` ON `notes` (`uuid`);

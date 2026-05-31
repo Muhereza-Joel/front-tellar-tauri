@@ -14,6 +14,7 @@ import { v7 as uuidv7 } from "uuid";
 import { usePurchaseOrderItems } from "./usePurchaseOrderItems";
 import { useProductLookup } from "./useProductLookup";
 import { PurchaseOrderStateContext } from "./state/purchaseOrderStateContext";
+import { useAuth } from "../../context/AuthContext";
 
 const purchaseOrderSchema = yup.object({
   po_number: yup.string().required("PO Number is required"),
@@ -35,6 +36,7 @@ const purchaseOrderSchema = yup.object({
 });
 
 export function usePurchaseOrderViewModel() {
+  const { getTenantId } = useAuth();
   const [db, setDb] = useState<any>(null);
   const [view, setView] = useState<"list" | "form">("list");
   const [loading, setLoading] = useState(true);
@@ -270,6 +272,7 @@ export function usePurchaseOrderViewModel() {
       const timestamp = new Date().toISOString();
       const subtotal = itemModel.totals.subtotal;
       const totalAmount = subtotal;
+      const tenantId = getTenantId();
 
       // --- NEW ORDER ---
       if (!editingUuid) {
@@ -285,9 +288,10 @@ export function usePurchaseOrderViewModel() {
           subtotal: subtotal,
           total_amount: totalAmount,
           notes: formData.notes || null,
+          tenant_id: tenantId,
           created_at: timestamp,
           updated_at: timestamp,
-          sync_status: "inserted",
+          sync_status: "created",
         });
 
         for (const line of itemModel.items) {
@@ -301,9 +305,10 @@ export function usePurchaseOrderViewModel() {
             received_quantity: line.received_quantity || 0,
             unit_price: line.unit_price,
             total_price: line.quantity * line.unit_price,
+            tenant_id: tenantId,
             created_at: timestamp,
             updated_at: timestamp,
-            sync_status: "inserted",
+            sync_status: "created",
           });
         }
       }
@@ -417,9 +422,10 @@ export function usePurchaseOrderViewModel() {
               received_quantity: line.received_quantity || 0,
               unit_price: line.unit_price,
               total_price: line.quantity * line.unit_price,
+              tenant_id: tenantId,
               created_at: timestamp,
               updated_at: timestamp,
-              sync_status: "inserted",
+              sync_status: "created",
             });
           }
         }

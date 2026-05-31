@@ -13,19 +13,26 @@ import Head from "next/head";
 
 const MAX_DRIFT_MINUTES = 5;
 const CACHE_KEY = "lastVerifiedServerTime";
+const MAX_CACHE_AGE_HOURS = 24; // optional: reject caches older than 1 day
 
 const TIME_SOURCES = ["https://api.famkonect.com/api/v1/time/server"];
+
+interface TimeCache {
+  serverTime: number; // timestamp from server
+  localTime: number; // Date.now() when cache was created
+}
 
 export default function TimeGuard({ children }: { children: React.ReactNode }) {
   const [isChecking, setIsChecking] = useState(true);
   const [isOutOfSync, setIsOutOfSync] = useState(false);
-  const [timeDiff, setTimeDiff] = useState<number>(0);
+  const [timeDiff, setTimeDiff] = useState<number | null>(null);
   const pathname = usePathname();
 
   const checkTime = useCallback(async () => {
     setIsChecking(true);
     let success = false;
 
+    // 1. Try online sources
     for (const source of TIME_SOURCES) {
       try {
         const start = Date.now();
@@ -43,13 +50,12 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
         ).getTime();
 
         const localTime = Date.now();
-        localStorage.setItem(CACHE_KEY, serverTime.toString());
+        const cache: TimeCache = { serverTime, localTime };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
 
-        const diffMs = Math.abs(serverTime - localTime);
-        const diffMinutes = diffMs / 1000 / 60;
-
-        if (diffMinutes > MAX_DRIFT_MINUTES) {
-          setTimeDiff(Math.round(diffMinutes));
+        const driftMinutes = Math.abs(serverTime - localTime) / 1000 / 60;
+        if (driftMinutes > MAX_DRIFT_MINUTES) {
+          setTimeDiff(Math.round(driftMinutes));
           setIsOutOfSync(true);
         } else {
           setIsOutOfSync(false);
@@ -62,19 +68,46 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
       }
     }
 
+    // 2. Offline fallback using cached data
     if (!success) {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const diffMs = Math.abs(parseInt(cached, 10) - Date.now());
-        const diffMinutes = diffMs / 1000 / 60;
-        if (diffMinutes > MAX_DRIFT_MINUTES) {
-          setTimeDiff(Math.round(diffMinutes));
+      const cachedRaw = localStorage.getItem(CACHE_KEY);
+      if (cachedRaw) {
+        try {
+          const cached: TimeCache = JSON.parse(cachedRaw);
+          const now = Date.now();
+          const elapsedLocal = now - cached.localTime;
+
+          // Optional: reject extremely old caches (e.g., >24h)
+          const maxCacheMs = MAX_CACHE_AGE_HOURS * 60 * 60 * 1000;
+          if (elapsedLocal > maxCacheMs) {
+            console.warn("Cached time is too old, require online sync");
+            setTimeDiff(null);
+            setIsOutOfSync(true);
+          } else {
+            // Reconstruct expected server time based on local clock progression
+            const expectedServerNow = cached.serverTime + elapsedLocal;
+            const drift = Math.abs(expectedServerNow - now);
+            const driftMinutes = drift / 1000 / 60;
+
+            if (driftMinutes > MAX_DRIFT_MINUTES) {
+              setTimeDiff(Math.round(driftMinutes));
+              setIsOutOfSync(true);
+            } else {
+              setIsOutOfSync(false);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to parse cached time", e);
           setIsOutOfSync(true);
         }
+      } else {
+        // No cache and offline – cannot verify clock safety
+        console.warn("No time cache available, locking until online sync");
+        setTimeDiff(null);
+        setIsOutOfSync(true);
       }
     }
 
-    // Add a slight delay for smoother UI transitions
     setTimeout(() => setIsChecking(false), 800);
   }, []);
 
@@ -87,8 +120,7 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
   const bypassPaths = ["/setup-root"];
   if (bypassPaths.includes(pathname)) return <>{children}</>;
 
-  // --- UI COMPONENTS ---
-
+  // --- UI COMPONENTS (unchanged, but adapt timeDiff display) ---
   const Layout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-[#09090b] text-zinc-400 flex flex-col items-center justify-center p-6 selection:bg-blue-500/30">
       <div className="relative z-10 w-full max-w-[440px] animate-in fade-in zoom-in-95 duration-500">
@@ -120,18 +152,26 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (isOutOfSync) {
+    const offsetText =
+      timeDiff !== null ? `~${timeDiff}m` : "unknown (no sync data)";
     return (
       <Layout>
         <Head>
           <meta
             name="last-verified-server-time"
-            content={localStorage.getItem(CACHE_KEY) || ""}
+            content={(() => {
+              const cached = localStorage.getItem(CACHE_KEY);
+              if (cached) {
+                try {
+                  return JSON.parse(cached).serverTime;
+                } catch {}
+              }
+              return "";
+            })()}
           />
         </Head>
 
-        {/* Main Card */}
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
-          {/* Header Status Bar */}
           <div className="bg-red-500/10 border-b border-red-500/20 px-6 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <ShieldAlert className="h-4 w-4 text-red-500" />
@@ -153,13 +193,12 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
                 Security protocols require your system clock to match the global
                 standard. Your clock is offset by{" "}
                 <span className="text-zinc-100 font-mono font-bold bg-zinc-800 px-1 rounded">
-                  ~{timeDiff}m
+                  {offsetText}
                 </span>
                 .
               </p>
             </div>
 
-            {/* Instruction Blocks */}
             <div className="space-y-3 mb-8">
               <div className="group flex items-start gap-4 p-3 rounded-xl hover:bg-zinc-800/50 transition-colors border border-transparent hover:border-zinc-700">
                 <div className="h-8 w-8 shrink-0 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-100 font-mono text-xs border border-zinc-700">
@@ -190,7 +229,6 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            {/* Action Button */}
             <button
               onClick={checkTime}
               disabled={isChecking}
@@ -207,7 +245,6 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          {/* Technical Footer */}
           <div className="bg-zinc-950/50 px-6 py-4 border-t border-zinc-800 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="flex flex-col">
@@ -223,7 +260,6 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Bottom Metadata */}
         <div className="mt-8 flex justify-between items-center px-2">
           <div className="flex items-center gap-2">
             <div className="h-1 w-1 rounded-full bg-red-500" />
@@ -244,7 +280,15 @@ export default function TimeGuard({ children }: { children: React.ReactNode }) {
       <Head>
         <meta
           name="last-verified-server-time"
-          content={localStorage.getItem(CACHE_KEY) || ""}
+          content={(() => {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+              try {
+                return JSON.parse(cached).serverTime;
+              } catch {}
+            }
+            return "";
+          })()}
         />
       </Head>
       {children}

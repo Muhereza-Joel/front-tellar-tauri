@@ -1,0 +1,151 @@
+{
+  "id": "tailor",
+  "label": "Tailor & Garment Services",
+  "description": "Units for tailoring, clothing production, embroidery, ironing, fabric work, and garment sales.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Finished garment or item"
+    },
+    {
+      "name": "Set",
+      "singular": "set",
+      "plural": "sets",
+      "description": "Matching outfit or uniform set"
+    },
+    {
+      "name": "Outfit",
+      "singular": "outfit",
+      "plural": "outfits",
+      "description": "Complete clothing combination"
+    },
+    {
+      "name": "Suit",
+      "singular": "suit",
+      "plural": "suits",
+      "description": "Formal wear set"
+    },
+    {
+      "name": "Order",
+      "singular": "order",
+      "plural": "orders",
+      "description": "Custom tailoring request"
+    },
+    {
+      "name": "Service",
+      "singular": "service",
+      "plural": "services",
+      "description": "Generic tailoring service unit"
+    },
+    {
+      "name": "Session",
+      "singular": "session",
+      "plural": "sessions",
+      "description": "Work session (design, fitting, consultation)"
+    },
+    {
+      "name": "Hour",
+      "singular": "hr",
+      "plural": "hours",
+      "description": "Time-based tailoring or ironing work"
+    },
+    {
+      "name": "Minute",
+      "singular": "min",
+      "plural": "minutes",
+      "description": "Short services like ironing or adjustments"
+    },
+
+    {
+      "name": "Meter",
+      "singular": "m",
+      "plural": "meters",
+      "description": "Fabric measurement"
+    },
+    {
+      "name": "Yard",
+      "singular": "yd",
+      "plural": "yards",
+      "description": "Fabric measurement"
+    },
+    {
+      "name": "Roll",
+      "singular": "roll",
+      "plural": "rolls",
+      "description": "Fabric rolls"
+    },
+
+    {
+      "name": "Stitch",
+      "singular": "stitch",
+      "plural": "stitches",
+      "description": "Embroidery or sewing unit"
+    },
+    {
+      "name": "Design",
+      "singular": "design",
+      "plural": "designs",
+      "description": "Artwork or embroidery design"
+    },
+    {
+      "name": "Embroidery Piece",
+      "singular": "embroidery piece",
+      "plural": "embroidery pieces",
+      "description": "Completed embroidery work"
+    },
+
+    {
+      "name": "Press",
+      "singular": "press",
+      "plural": "presses",
+      "description": "Ironing service unit"
+    },
+    {
+      "name": "Ironing Item",
+      "singular": "ironing item",
+      "plural": "ironing items",
+      "description": "Clothes ironed per item"
+    },
+
+    {
+      "name": "Bundle",
+      "singular": "bundle",
+      "plural": "bundles",
+      "description": "Grouped garments or fabrics"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Packaged clothing or fabric items"
+    },
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "Bulk small clothing items or accessories"
+    },
+
+    {
+      "name": "Alteration",
+      "singular": "alteration",
+      "plural": "alterations",
+      "description": "Clothing adjustment service"
+    },
+    {
+      "name": "Repair",
+      "singular": "repair",
+      "plural": "repairs",
+      "description": "Garment repair service"
+    },
+
+    {
+      "name": "Artwork",
+      "singular": "artwork",
+      "plural": "artworks",
+      "description": "Custom fabric artwork or prints"
+    }
+  ]
+}

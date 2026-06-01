@@ -183,7 +183,7 @@ export default function ModuleLayout({
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto bg-slate-100 dark:bg-black p-2 lg:p-4">
+        <div className="flex-1 overflow-auto bg-slate-100 dark:bg-black p-1">
           {children}
         </div>
       </main>

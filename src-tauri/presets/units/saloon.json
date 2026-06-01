@@ -1,0 +1,159 @@
+{
+  "id": "saloon",
+  "label": "Salon & Beauty",
+  "description": "Units for hair, beauty, grooming services, and retail beauty products.",
+  "units": [
+    {
+      "name": "Pair",
+      "singular": "pair",
+      "plural": "pairs",
+      "description": "Items sold in twos, such as speakers"
+    },
+    {
+      "name": "Unit",
+      "singular": "unit",
+      "plural": "units",
+      "description": "Appliance or device"
+    },
+    {
+      "name": "Minute",
+      "singular": "min",
+      "plural": "minutes",
+      "description": "Short service duration"
+    },
+    {
+      "name": "Hour",
+      "singular": "hr",
+      "plural": "hours",
+      "description": "Extended service duration"
+    },
+    {
+      "name": "Session",
+      "singular": "session",
+      "plural": "sessions",
+      "description": "Complete service treatment"
+    },
+    {
+      "name": "Service",
+      "singular": "service",
+      "plural": "services",
+      "description": "Generic salon service unit"
+    },
+
+    {
+      "name": "Package",
+      "singular": "package",
+      "plural": "packages",
+      "description": "Bundled services (e.g. bridal package)"
+    },
+    {
+      "name": "Treatment",
+      "singular": "treatment",
+      "plural": "treatments",
+      "description": "Specialized beauty treatment"
+    },
+    {
+      "name": "Procedure",
+      "singular": "procedure",
+      "plural": "procedures",
+      "description": "Medical or advanced beauty procedure"
+    },
+
+    {
+      "name": "Visit",
+      "singular": "visit",
+      "plural": "visits",
+      "description": "Customer appointment"
+    },
+    {
+      "name": "Appointment",
+      "singular": "appointment",
+      "plural": "appointments",
+      "description": "Booked service slot"
+    },
+
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Single retail beauty item"
+    },
+    {
+      "name": "Bottle",
+      "singular": "bottle",
+      "plural": "bottles",
+      "description": "Shampoo, lotion, oils, sprays"
+    },
+    {
+      "name": "Tube",
+      "singular": "tube",
+      "plural": "tubes",
+      "description": "Creams, hair dye, gels"
+    },
+    {
+      "name": "Jar",
+      "singular": "jar",
+      "plural": "jars",
+      "description": "Hair masks, wax, creams"
+    },
+    {
+      "name": "Can",
+      "singular": "can",
+      "plural": "cans",
+      "description": "Sprays, hair products"
+    },
+
+    {
+      "name": "Set",
+      "singular": "set",
+      "plural": "sets",
+      "description": "Beauty kits or product bundles"
+    },
+    {
+      "name": "Kit",
+      "singular": "kit",
+      "plural": "kits",
+      "description": "Complete beauty or grooming kit"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Grouped products or services"
+    },
+
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "Bulk small items (e.g. nail tips, lashes)"
+    },
+
+    {
+      "name": "Gram",
+      "singular": "g",
+      "plural": "grams",
+      "description": "Small quantity beauty products"
+    },
+    {
+      "name": "Milliliter",
+      "singular": "ml",
+      "plural": "milliliters",
+      "description": "Liquid beauty products"
+    },
+
+    {
+      "name": "Session Pack",
+      "singular": "session pack",
+      "plural": "session packs",
+      "description": "Prepaid service bundle (e.g. 5 massages)"
+    },
+
+    {
+      "name": "Membership",
+      "singular": "membership",
+      "plural": "memberships",
+      "description": "Recurring beauty service subscription"
+    }
+  ]
+}

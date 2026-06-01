@@ -29,6 +29,7 @@ export function useUnitViewModel() {
   const [loading, setLoading] = useState(true);
   const [editingUuid, setEditingUuid] = useState<string | null>(null);
   const [errors, setErrors] = useState<any>({});
+  const [isPresetOpen, setIsPresetOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -204,6 +205,60 @@ export function useUnitViewModel() {
     setErrors({});
   };
 
+  const importPresets = async (selectedUnits: any[]) => {
+    if (!db || !selectedUnits.length) return;
+
+    // 1. Get tenant ID and enforce that it cannot be null
+    const tenantId = getTenantId();
+    if (!tenantId) {
+      console.error(
+        "Bulk Import Aborted: No active tenant ID resolved from context.",
+      );
+      return;
+    }
+
+    try {
+      // 2. Query existing active names safely now that tenantId is definitively a string
+      const existingDbUnits = await db
+        .select({ name: units.name })
+        .from(units)
+        .where(eq(units.tenant_id, tenantId)); // No more TypeScript errors here!
+
+      // 3. Map existing names to lowercase for case-insensitive verification
+      const existingNamesSet = new Set(
+        existingDbUnits.map((u: any) => u.name.toLowerCase()),
+      );
+
+      // 4. Map and filter out records that are already present
+      const valuesToInsert = selectedUnits
+        .map((u) => ({
+          uuid: uuidv7(),
+          name: u.name.trim(),
+          singular: u.singular.trim(),
+          plural: u.plural.trim(),
+          description: u.description || null,
+          is_active: true,
+          sync_status: "created",
+          tenant_id: tenantId,
+          created_at: new Date().toISOString(),
+        }))
+        .filter((row) => !existingNamesSet.has(row.name.toLowerCase()));
+
+      // 5. Batch insert or loop insert only the non-duplicate records
+      if (valuesToInsert.length > 0) {
+        for (const row of valuesToInsert) {
+          await db.insert(units).values(row);
+        }
+      }
+
+      // Refresh table list UI
+      await loadData();
+    } catch (err) {
+      console.error("Bulk Preset Import Error: ", err);
+      throw err;
+    }
+  };
+
   return {
     unitsList: paginatedData,
     loading,
@@ -223,5 +278,8 @@ export function useUnitViewModel() {
     setPageSize,
     searchTerm,
     setSearchTerm,
+    isPresetOpen,
+    setIsPresetOpen,
+    importPresets,
   };
 }

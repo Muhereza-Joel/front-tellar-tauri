@@ -1,0 +1,242 @@
+{
+  "id": "universal",
+  "label": "Universal Units",
+  "description": "General-purpose units for all business types including retail, services, manufacturing, and wholesale.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Individual item (default unit for most products)"
+    },
+    {
+      "name": "Set",
+      "singular": "set",
+      "plural": "sets",
+      "description": "Grouped or matching items"
+    },
+    {
+      "name": "Pair",
+      "singular": "pair",
+      "plural": "pairs",
+      "description": "Two related items"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Pre-packaged items"
+    },
+    {
+      "name": "Packet",
+      "singular": "pkt",
+      "plural": "packets",
+      "description": "Small packaged goods"
+    },
+    {
+      "name": "Box",
+      "singular": "box",
+      "plural": "boxes",
+      "description": "Carton or boxed goods"
+    },
+    {
+      "name": "Carton",
+      "singular": "carton",
+      "plural": "cartons",
+      "description": "Bulk packaged goods"
+    },
+    {
+      "name": "Bundle",
+      "singular": "bundle",
+      "plural": "bundles",
+      "description": "Grouped items sold together"
+    },
+    {
+      "name": "Bag",
+      "singular": "bag",
+      "plural": "bags",
+      "description": "Loose goods or packaged items"
+    },
+    {
+      "name": "Sack",
+      "singular": "sack",
+      "plural": "sacks",
+      "description": "Large bulk materials"
+    },
+    {
+      "name": "Bottle",
+      "singular": "bottle",
+      "plural": "bottles",
+      "description": "Liquid products"
+    },
+    {
+      "name": "Can",
+      "singular": "can",
+      "plural": "cans",
+      "description": "Canned goods or products"
+    },
+    {
+      "name": "Jar",
+      "singular": "jar",
+      "plural": "jars",
+      "description": "Preserved or stored goods"
+    },
+    {
+      "name": "Tin",
+      "singular": "tin",
+      "plural": "tins",
+      "description": "Metal container goods"
+    },
+    {
+      "name": "Tray",
+      "singular": "tray",
+      "plural": "trays",
+      "description": "Grouped physical items"
+    },
+    {
+      "name": "Crate",
+      "singular": "crate",
+      "plural": "crates",
+      "description": "Transport or bulk storage unit"
+    },
+
+    {
+      "name": "Kilogram",
+      "singular": "kg",
+      "plural": "kilograms",
+      "description": "Weight measurement"
+    },
+    {
+      "name": "Gram",
+      "singular": "g",
+      "plural": "grams",
+      "description": "Small weight measurement"
+    },
+    {
+      "name": "Ton",
+      "singular": "ton",
+      "plural": "tons",
+      "description": "Bulk weight measurement"
+    },
+
+    {
+      "name": "Liter",
+      "singular": "L",
+      "plural": "liters",
+      "description": "Liquid volume"
+    },
+    {
+      "name": "Milliliter",
+      "singular": "ml",
+      "plural": "milliliters",
+      "description": "Small liquid volume"
+    },
+    {
+      "name": "Gallon",
+      "singular": "gal",
+      "plural": "gallons",
+      "description": "Large liquid volume"
+    },
+
+    {
+      "name": "Meter",
+      "singular": "m",
+      "plural": "meters",
+      "description": "Length measurement"
+    },
+    {
+      "name": "Centimeter",
+      "singular": "cm",
+      "plural": "centimeters",
+      "description": "Small length measurement"
+    },
+    {
+      "name": "Foot",
+      "singular": "ft",
+      "plural": "feet",
+      "description": "Imperial length measurement"
+    },
+    {
+      "name": "Inch",
+      "singular": "in",
+      "plural": "inches",
+      "description": "Small length unit"
+    },
+    {
+      "name": "Yard",
+      "singular": "yd",
+      "plural": "yards",
+      "description": "Fabric or material length"
+    },
+
+    {
+      "name": "Hour",
+      "singular": "hr",
+      "plural": "hours",
+      "description": "Time-based service unit"
+    },
+    {
+      "name": "Minute",
+      "singular": "min",
+      "plural": "minutes",
+      "description": "Short service duration"
+    },
+    {
+      "name": "Session",
+      "singular": "session",
+      "plural": "sessions",
+      "description": "Service or appointment unit"
+    },
+    {
+      "name": "Service",
+      "singular": "service",
+      "plural": "services",
+      "description": "Generic service unit"
+    },
+
+    {
+      "name": "Order",
+      "singular": "order",
+      "plural": "orders",
+      "description": "Custom request or purchase"
+    },
+    {
+      "name": "Appointment",
+      "singular": "appointment",
+      "plural": "appointments",
+      "description": "Booked service slot"
+    },
+
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "12 units"
+    },
+    {
+      "name": "Half Dozen",
+      "singular": "half-dozen",
+      "plural": "half-dozens",
+      "description": "6 units"
+    },
+
+    {
+      "name": "Batch",
+      "singular": "batch",
+      "plural": "batches",
+      "description": "Production batch"
+    },
+    {
+      "name": "Bundle Pack",
+      "singular": "bundle pack",
+      "plural": "bundle packs",
+      "description": "Combined product or service package"
+    },
+    {
+      "name": "Pallet",
+      "singular": "pallet",
+      "plural": "pallets",
+      "description": "Wholesale shipment unit"
+    }
+  ]
+}

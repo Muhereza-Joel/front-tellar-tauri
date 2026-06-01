@@ -1,0 +1,169 @@
+{
+  "id": "grocery",
+  "label": "Grocery Shop",
+  "description": "Units for fresh produce, packaged foods, beverages, grains, and household goods.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Individual item such as fruit or vegetable"
+    },
+    {
+      "name": "Kilogram",
+      "singular": "kg",
+      "plural": "kilograms",
+      "description": "Weight measurement"
+    },
+    {
+      "name": "Gram",
+      "singular": "g",
+      "plural": "grams",
+      "description": "Small weight measurement"
+    },
+    {
+      "name": "Ton",
+      "singular": "ton",
+      "plural": "tons",
+      "description": "Bulk weight measurement"
+    },
+    {
+      "name": "Liter",
+      "singular": "L",
+      "plural": "liters",
+      "description": "Liquid measurement"
+    },
+    {
+      "name": "Milliliter",
+      "singular": "ml",
+      "plural": "milliliters",
+      "description": "Small liquid measurement"
+    },
+    {
+      "name": "Packet",
+      "singular": "pkt",
+      "plural": "packets",
+      "description": "Packaged goods"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Multiple packaged items"
+    },
+    {
+      "name": "Bag",
+      "singular": "bag",
+      "plural": "bags",
+      "description": "Bag of produce or grains"
+    },
+    {
+      "name": "Sack",
+      "singular": "sack",
+      "plural": "sacks",
+      "description": "Large bag of grains or produce"
+    },
+    {
+      "name": "Box",
+      "singular": "box",
+      "plural": "boxes",
+      "description": "Packaged goods in a box"
+    },
+    {
+      "name": "Carton",
+      "singular": "carton",
+      "plural": "cartons",
+      "description": "Milk, juice, eggs, or wholesale packaging"
+    },
+    {
+      "name": "Crate",
+      "singular": "crate",
+      "plural": "crates",
+      "description": "Bulk fruits, vegetables, or beverages"
+    },
+    {
+      "name": "Tray",
+      "singular": "tray",
+      "plural": "trays",
+      "description": "Eggs, fruits, or packaged items"
+    },
+    {
+      "name": "Bottle",
+      "singular": "bottle",
+      "plural": "bottles",
+      "description": "Beverages or liquid products"
+    },
+    {
+      "name": "Can",
+      "singular": "can",
+      "plural": "cans",
+      "description": "Canned food or drinks"
+    },
+    {
+      "name": "Jar",
+      "singular": "jar",
+      "plural": "jars",
+      "description": "Preserves, sauces, and spreads"
+    },
+    {
+      "name": "Tin",
+      "singular": "tin",
+      "plural": "tins",
+      "description": "Tinned food products"
+    },
+    {
+      "name": "Bundle",
+      "singular": "bundle",
+      "plural": "bundles",
+      "description": "Vegetables or herbs sold together"
+    },
+    {
+      "name": "Bunch",
+      "singular": "bunch",
+      "plural": "bunches",
+      "description": "Bananas, greens, herbs"
+    },
+    {
+      "name": "Head",
+      "singular": "head",
+      "plural": "heads",
+      "description": "Cabbage, lettuce, cauliflower"
+    },
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "12 items"
+    },
+    {
+      "name": "Half Dozen",
+      "singular": "half-dozen",
+      "plural": "half-dozens",
+      "description": "6 items"
+    },
+    {
+      "name": "Cup",
+      "singular": "cup",
+      "plural": "cups",
+      "description": "Measured quantity"
+    },
+    {
+      "name": "Tablespoon",
+      "singular": "tbsp",
+      "plural": "tablespoons",
+      "description": "Small measured quantity"
+    },
+    {
+      "name": "Teaspoon",
+      "singular": "tsp",
+      "plural": "teaspoons",
+      "description": "Very small measured quantity"
+    },
+    {
+      "name": "Pallet",
+      "singular": "pallet",
+      "plural": "pallets",
+      "description": "Bulk wholesale stock"
+    }
+  ]
+}

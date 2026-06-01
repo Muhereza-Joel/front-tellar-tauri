@@ -1,6 +1,7 @@
 use tauri::Manager;
 mod commands;
 use commands::license::{get_machine_hash, store_secure, get_secure, delete_secure};
+use commands::presets::get_unit_presets;
 
 mod sequence_generator; // your PO + SKU generator module
 use sequence_generator::{generate_po_number, generate_sku};
@@ -232,6 +233,7 @@ pub fn run() {
             get_unsynced_counts,
             cmd_generate_po_number,
             cmd_generate_sku,
+            get_unit_presets,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

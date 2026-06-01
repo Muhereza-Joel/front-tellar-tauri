@@ -1,0 +1,182 @@
+{
+  "id": "hardware",
+  "label": "Hardware & Construction",
+  "description": "Units for building materials, tools, plumbing, electricals, and construction supplies.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Individual tools or items"
+    },
+    {
+      "name": "Set",
+      "singular": "set",
+      "plural": "sets",
+      "description": "Tool kits or grouped items"
+    },
+    {
+      "name": "Pair",
+      "singular": "pair",
+      "plural": "pairs",
+      "description": "Items sold in twos (e.g., hinges, gloves)"
+    },
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "12 units (nails, bolts, etc.)"
+    },
+    {
+      "name": "Gross",
+      "singular": "gross",
+      "plural": "grosses",
+      "description": "144 units (bulk fasteners)"
+    },
+
+    {
+      "name": "Meter",
+      "singular": "m",
+      "plural": "meters",
+      "description": "Length measurement for pipes, cables, timber"
+    },
+    {
+      "name": "Centimeter",
+      "singular": "cm",
+      "plural": "centimeters",
+      "description": "Small length measurement"
+    },
+    {
+      "name": "Foot",
+      "singular": "ft",
+      "plural": "feet",
+      "description": "Length measurement"
+    },
+    {
+      "name": "Inch",
+      "singular": "in",
+      "plural": "inches",
+      "description": "Small length measurement"
+    },
+
+    {
+      "name": "Kilogram",
+      "singular": "kg",
+      "plural": "kilograms",
+      "description": "Weight for cement, nails, metal"
+    },
+    {
+      "name": "Gram",
+      "singular": "g",
+      "plural": "grams",
+      "description": "Small components"
+    },
+    {
+      "name": "Ton",
+      "singular": "ton",
+      "plural": "tons",
+      "description": "Bulk materials like sand, stones, cement"
+    },
+
+    {
+      "name": "Bag",
+      "singular": "bag",
+      "plural": "bags",
+      "description": "Cement, sand, fertilizer"
+    },
+    {
+      "name": "Sack",
+      "singular": "sack",
+      "plural": "sacks",
+      "description": "Large material packaging"
+    },
+    {
+      "name": "Box",
+      "singular": "box",
+      "plural": "boxes",
+      "description": "Fasteners, fittings, tools"
+    },
+    {
+      "name": "Carton",
+      "singular": "carton",
+      "plural": "cartons",
+      "description": "Bulk packaged goods"
+    },
+    {
+      "name": "Bundle",
+      "singular": "bundle",
+      "plural": "bundles",
+      "description": "Grouped items like rods, pipes"
+    },
+    {
+      "name": "Roll",
+      "singular": "roll",
+      "plural": "rolls",
+      "description": "Wire mesh, insulation, cables"
+    },
+    {
+      "name": "Coil",
+      "singular": "coil",
+      "plural": "coils",
+      "description": "Electrical wire or piping"
+    },
+
+    {
+      "name": "Liter",
+      "singular": "L",
+      "plural": "liters",
+      "description": "Paints, adhesives, liquids"
+    },
+    {
+      "name": "Milliliter",
+      "singular": "ml",
+      "plural": "milliliters",
+      "description": "Small chemical quantities"
+    },
+    {
+      "name": "Gallon",
+      "singular": "gal",
+      "plural": "gallons",
+      "description": "Large liquid paint or fuel containers"
+    },
+
+    {
+      "name": "Bucket",
+      "singular": "bucket",
+      "plural": "buckets",
+      "description": "Paint, adhesive, water"
+    },
+    {
+      "name": "Drum",
+      "singular": "drum",
+      "plural": "drums",
+      "description": "Industrial liquids"
+    },
+
+    {
+      "name": "Sheet",
+      "singular": "sheet",
+      "plural": "sheets",
+      "description": "Iron sheets, plywood, glass"
+    },
+    {
+      "name": "Panel",
+      "singular": "panel",
+      "plural": "panels",
+      "description": "Wall or ceiling panels"
+    },
+    {
+      "name": "Tile",
+      "singular": "tile",
+      "plural": "tiles",
+      "description": "Floor and wall tiles"
+    },
+
+    {
+      "name": "Pallet",
+      "singular": "pallet",
+      "plural": "pallets",
+      "description": "Bulk wholesale shipments"
+    }
+  ]
+}

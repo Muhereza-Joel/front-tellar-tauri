@@ -1,0 +1,200 @@
+{
+  "id": "bakery",
+  "label": "Bakery",
+  "description": "Units for bread, pastries, cakes, ingredients, and baked goods.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Individual baked item"
+    },
+    {
+      "name": "Slice",
+      "singular": "slice",
+      "plural": "slices",
+      "description": "Cut portion of bread or cake"
+    },
+    {
+      "name": "Loaf",
+      "singular": "loaf",
+      "plural": "loaves",
+      "description": "Whole bread unit"
+    },
+    {
+      "name": "Roll",
+      "singular": "roll",
+      "plural": "rolls",
+      "description": "Bread roll or bun"
+    },
+    {
+      "name": "Bun",
+      "singular": "bun",
+      "plural": "buns",
+      "description": "Individual bun"
+    },
+    {
+      "name": "Bagel",
+      "singular": "bagel",
+      "plural": "bagels",
+      "description": "Individual bagel"
+    },
+    {
+      "name": "Croissant",
+      "singular": "croissant",
+      "plural": "croissants",
+      "description": "Individual croissant"
+    },
+    {
+      "name": "Muffin",
+      "singular": "muffin",
+      "plural": "muffins",
+      "description": "Individual muffin"
+    },
+    {
+      "name": "Donut",
+      "singular": "donut",
+      "plural": "donuts",
+      "description": "Individual donut"
+    },
+    {
+      "name": "Cake",
+      "singular": "cake",
+      "plural": "cakes",
+      "description": "Whole cake"
+    },
+    {
+      "name": "Tier",
+      "singular": "tier",
+      "plural": "tiers",
+      "description": "Cake tier"
+    },
+    {
+      "name": "Tray",
+      "singular": "tray",
+      "plural": "trays",
+      "description": "Tray of baked goods"
+    },
+    {
+      "name": "Pan",
+      "singular": "pan",
+      "plural": "pans",
+      "description": "Baking pan quantity"
+    },
+    {
+      "name": "Batch",
+      "singular": "batch",
+      "plural": "batches",
+      "description": "Production batch"
+    },
+    {
+      "name": "Packet",
+      "singular": "pkt",
+      "plural": "packets",
+      "description": "Packaged baked goods"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Multi-item package"
+    },
+    {
+      "name": "Box",
+      "singular": "box",
+      "plural": "boxes",
+      "description": "Box of baked goods"
+    },
+    {
+      "name": "Bag",
+      "singular": "bag",
+      "plural": "bags",
+      "description": "Bag of baked goods"
+    },
+    {
+      "name": "Carton",
+      "singular": "carton",
+      "plural": "cartons",
+      "description": "Large packaged quantity"
+    },
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "12 units"
+    },
+    {
+      "name": "Half Dozen",
+      "singular": "half-dozen",
+      "plural": "half-dozens",
+      "description": "6 units"
+    },
+    {
+      "name": "Score",
+      "singular": "score",
+      "plural": "scores",
+      "description": "20 units"
+    },
+
+    {
+      "name": "Gram",
+      "singular": "g",
+      "plural": "grams",
+      "description": "Weight measurement"
+    },
+    {
+      "name": "Kilogram",
+      "singular": "kg",
+      "plural": "kilograms",
+      "description": "Bulk ingredient weight"
+    },
+    {
+      "name": "Milligram",
+      "singular": "mg",
+      "plural": "milligrams",
+      "description": "Small ingredient quantity"
+    },
+    {
+      "name": "Ounce",
+      "singular": "oz",
+      "plural": "ounces",
+      "description": "Weight measurement"
+    },
+    {
+      "name": "Pound",
+      "singular": "lb",
+      "plural": "pounds",
+      "description": "Bulk ingredient weight"
+    },
+    {
+      "name": "Millilitre",
+      "singular": "ml",
+      "plural": "millilitres",
+      "description": "Liquid measurement"
+    },
+    {
+      "name": "Litre",
+      "singular": "L",
+      "plural": "litres",
+      "description": "Liquid measurement"
+    },
+    {
+      "name": "Teaspoon",
+      "singular": "tsp",
+      "plural": "teaspoons",
+      "description": "Small ingredient measure"
+    },
+    {
+      "name": "Tablespoon",
+      "singular": "tbsp",
+      "plural": "tablespoons",
+      "description": "Ingredient measure"
+    },
+    {
+      "name": "Cup",
+      "singular": "cup",
+      "plural": "cups",
+      "description": "Ingredient volume measure"
+    }
+  ]
+}

@@ -1,6 +1,16 @@
 "use client";
 
-import { Scale, Search, Plus, Edit2, Trash2, Info, Hash } from "lucide-react";
+import {
+  Scale,
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Info,
+  Hash,
+  Library,
+} from "lucide-react";
+import { UnitPresetDialog } from "./components/UnitPresetDialog";
 import { useUnitViewModel } from "./useUnitViewModel";
 import { Pagination } from "../../components/Pagination";
 import { useAuth } from "../../context/AuthContext";
@@ -24,6 +34,9 @@ export default function UnitManagementPage() {
     totalPages,
     setCurrentPage,
     setPageSize,
+    isPresetOpen,
+    setIsPresetOpen,
+    importPresets,
   } = useUnitViewModel();
 
   const { hasPermission } = useAuth();
@@ -194,6 +207,13 @@ export default function UnitManagementPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <button
+              onClick={() => setIsPresetOpen(true)}
+              className="border border-zinc-200 dark:border-zinc-800 dark:hover:bg-zinc-900 hover:bg-zinc-50 text-zinc-700 dark:text-zinc-300 px-3 py-2 text-xs font-bold flex items-center gap-2 transition-all shadow-xs"
+            >
+              <Library size={14} className="text-blue-500" />
+              <span>Use System Presets</span>
+            </button>
           </div>
 
           <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -297,6 +317,11 @@ export default function UnitManagementPage() {
           </div>
         </section>
       </div>
+      <UnitPresetDialog
+        isOpen={isPresetOpen}
+        onClose={() => setIsPresetOpen(false)}
+        onPresetsImported={importPresets}
+      />
     </div>
   );
 }

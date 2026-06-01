@@ -1,0 +1,97 @@
+{
+  "id": "boutique",
+  "label": "Boutique & Fashion Store",
+  "description": "Units for clothing, fashion accessories, and apparel retail.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Individual clothing item"
+    },
+    {
+      "name": "Set",
+      "singular": "set",
+      "plural": "sets",
+      "description": "Matching outfit or clothing set"
+    },
+    {
+      "name": "Pair",
+      "singular": "pair",
+      "plural": "pairs",
+      "description": "Items sold in twos (shoes, socks, gloves)"
+    },
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "Bulk small fashion items (socks, accessories)"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Multiple fashion items packaged together"
+    },
+    {
+      "name": "Box",
+      "singular": "box",
+      "plural": "boxes",
+      "description": "Packaged clothing or shoes"
+    },
+    {
+      "name": "Outfit",
+      "singular": "outfit",
+      "plural": "outfits",
+      "description": "Complete clothing combination"
+    },
+    {
+      "name": "Bundle",
+      "singular": "bundle",
+      "plural": "bundles",
+      "description": "Grouped fashion items sold together"
+    },
+    {
+      "name": "Size",
+      "singular": "size",
+      "plural": "sizes",
+      "description": "Size-based variation (S, M, L, XL)"
+    },
+    {
+      "name": "Meter",
+      "singular": "m",
+      "plural": "meters",
+      "description": "Fabric measurement"
+    },
+    {
+      "name": "Yard",
+      "singular": "yd",
+      "plural": "yards",
+      "description": "Fabric length measurement"
+    },
+    {
+      "name": "Roll",
+      "singular": "roll",
+      "plural": "rolls",
+      "description": "Fabric or textile roll"
+    },
+    {
+      "name": "Piece Set",
+      "singular": "piece set",
+      "plural": "piece sets",
+      "description": "Multi-piece clothing set (e.g. 3-piece suit)"
+    },
+    {
+      "name": "Accessory",
+      "singular": "accessory",
+      "plural": "accessories",
+      "description": "Fashion accessories like belts, bags, jewelry"
+    },
+    {
+      "name": "Unit",
+      "singular": "unit",
+      "plural": "units",
+      "description": "Generic fashion item"
+    }
+  ]
+}

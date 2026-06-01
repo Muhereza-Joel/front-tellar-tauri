@@ -1,0 +1,139 @@
+{
+  "id": "electronics",
+  "label": "Electronics Shop",
+  "description": "Units for gadgets, accessories, appliances, and electronic components.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Individual electronic item"
+    },
+    {
+      "name": "Unit",
+      "singular": "unit",
+      "plural": "units",
+      "description": "Appliance or device"
+    },
+    {
+      "name": "Set",
+      "singular": "set",
+      "plural": "sets",
+      "description": "Bundle of related items"
+    },
+    {
+      "name": "Pair",
+      "singular": "pair",
+      "plural": "pairs",
+      "description": "Items sold in twos, such as speakers"
+    },
+    {
+      "name": "Box",
+      "singular": "box",
+      "plural": "boxes",
+      "description": "Packaged electronics"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Multiple items packaged together"
+    },
+    {
+      "name": "Packet",
+      "singular": "pkt",
+      "plural": "packets",
+      "description": "Small packaged accessories"
+    },
+    {
+      "name": "Carton",
+      "singular": "carton",
+      "plural": "cartons",
+      "description": "Bulk packaged stock"
+    },
+    {
+      "name": "Case",
+      "singular": "case",
+      "plural": "cases",
+      "description": "Shipping case or packaged units"
+    },
+    {
+      "name": "Bundle",
+      "singular": "bundle",
+      "plural": "bundles",
+      "description": "Combined products sold together"
+    },
+    {
+      "name": "Kit",
+      "singular": "kit",
+      "plural": "kits",
+      "description": "Complete installation or repair kit"
+    },
+    {
+      "name": "Cable",
+      "singular": "cable",
+      "plural": "cables",
+      "description": "Individual cable"
+    },
+    {
+      "name": "Reel",
+      "singular": "reel",
+      "plural": "reels",
+      "description": "Cable or wire reel"
+    },
+    {
+      "name": "Meter",
+      "singular": "m",
+      "plural": "meters",
+      "description": "Cable sold by length"
+    },
+    {
+      "name": "Foot",
+      "singular": "ft",
+      "plural": "feet",
+      "description": "Cable sold by length"
+    },
+    {
+      "name": "Roll",
+      "singular": "roll",
+      "plural": "rolls",
+      "description": "Wire or cable roll"
+    },
+    {
+      "name": "Battery",
+      "singular": "battery",
+      "plural": "batteries",
+      "description": "Individual battery"
+    },
+    {
+      "name": "Cell",
+      "singular": "cell",
+      "plural": "cells",
+      "description": "Individual battery cell"
+    },
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "12 units"
+    },
+    {
+      "name": "Half Dozen",
+      "singular": "half-dozen",
+      "plural": "half-dozens",
+      "description": "6 units"
+    },
+    {
+      "name": "Pallet",
+      "singular": "pallet",
+      "plural": "pallets",
+      "description": "Large bulk shipment"
+    },
+    {
+      "name": "Container",
+      "singular": "container",
+      "plural": "containers",
+      "description": "Large imported stock shipment"
+    }
+  ]
+}

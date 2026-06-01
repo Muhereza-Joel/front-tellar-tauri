@@ -1,0 +1,184 @@
+{
+  "id": "supermarket",
+  "label": "Supermarket Pack",
+  "description": "Units for groceries, household goods, packaged foods, beverages, and retail products.",
+  "units": [
+    {
+      "name": "Piece",
+      "singular": "pc",
+      "plural": "pieces",
+      "description": "Individual retail item"
+    },
+    {
+      "name": "Kilogram",
+      "singular": "kg",
+      "plural": "kilograms",
+      "description": "Weight-based goods"
+    },
+    {
+      "name": "Gram",
+      "singular": "g",
+      "plural": "grams",
+      "description": "Small weight measurements"
+    },
+    {
+      "name": "Ton",
+      "singular": "ton",
+      "plural": "tons",
+      "description": "Bulk wholesale weight"
+    },
+
+    {
+      "name": "Liter",
+      "singular": "L",
+      "plural": "liters",
+      "description": "Liquid products"
+    },
+    {
+      "name": "Milliliter",
+      "singular": "ml",
+      "plural": "milliliters",
+      "description": "Small liquid volumes"
+    },
+    {
+      "name": "Gallon",
+      "singular": "gal",
+      "plural": "gallons",
+      "description": "Large liquid containers"
+    },
+
+    {
+      "name": "Packet",
+      "singular": "pkt",
+      "plural": "packets",
+      "description": "Small packaged goods"
+    },
+    {
+      "name": "Pack",
+      "singular": "pack",
+      "plural": "packs",
+      "description": "Grouped retail items"
+    },
+    {
+      "name": "Box",
+      "singular": "box",
+      "plural": "boxes",
+      "description": "Packaged goods"
+    },
+    {
+      "name": "Carton",
+      "singular": "carton",
+      "plural": "cartons",
+      "description": "Bulk packaged goods (milk, juice, etc.)"
+    },
+
+    {
+      "name": "Dozen",
+      "singular": "dozen",
+      "plural": "dozens",
+      "description": "Eggs, bakery items, or bulk count items"
+    },
+    {
+      "name": "Half Dozen",
+      "singular": "half-dozen",
+      "plural": "half-dozens",
+      "description": "6 units"
+    },
+
+    {
+      "name": "Bottle",
+      "singular": "bottle",
+      "plural": "bottles",
+      "description": "Drinks and liquids"
+    },
+    {
+      "name": "Can",
+      "singular": "can",
+      "plural": "cans",
+      "description": "Canned food and drinks"
+    },
+    {
+      "name": "Jar",
+      "singular": "jar",
+      "plural": "jars",
+      "description": "Sauces, spreads, preserves"
+    },
+    {
+      "name": "Tin",
+      "singular": "tin",
+      "plural": "tins",
+      "description": "Tinned food products"
+    },
+
+    {
+      "name": "Bag",
+      "singular": "bag",
+      "plural": "bags",
+      "description": "Sugar, rice, flour, grains"
+    },
+    {
+      "name": "Sack",
+      "singular": "sack",
+      "plural": "sacks",
+      "description": "Large bulk grains or produce"
+    },
+
+    {
+      "name": "Tray",
+      "singular": "tray",
+      "plural": "trays",
+      "description": "Eggs or packaged fresh goods"
+    },
+    {
+      "name": "Crate",
+      "singular": "crate",
+      "plural": "crates",
+      "description": "Fruits, vegetables, beverages"
+    },
+    {
+      "name": "Bundle",
+      "singular": "bundle",
+      "plural": "bundles",
+      "description": "Grouped fresh produce"
+    },
+    {
+      "name": "Bunch",
+      "singular": "bunch",
+      "plural": "bunches",
+      "description": "Bananas, greens, herbs"
+    },
+
+    {
+      "name": "Roll",
+      "singular": "roll",
+      "plural": "rolls",
+      "description": "Tissue, foil, packaging materials"
+    },
+    {
+      "name": "Sheet",
+      "singular": "sheet",
+      "plural": "sheets",
+      "description": "Paper, foil, wraps"
+    },
+
+    {
+      "name": "Bottle Pack",
+      "singular": "bottle pack",
+      "plural": "bottle packs",
+      "description": "Multipack drinks"
+    },
+    {
+      "name": "Family Pack",
+      "singular": "family pack",
+      "plural": "family packs",
+      "description": "Large consumer pack size"
+    },
+
+    {
+      "name": "Pallet",
+      "singular": "pallet",
+      "plural": "pallets",
+      "description": "Wholesale bulk shipments"
+    }
+  ]
+}

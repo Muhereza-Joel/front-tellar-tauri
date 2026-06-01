@@ -67,7 +67,7 @@ export default function RolesPage() {
   `;
 
   return (
-    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-zinc-50 dark:bg-black font-sans">
+    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-slate-100 dark:bg-black font-sans">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 items-start">
         {/* FORM SECTION */}
         {(canCreateRole || (editingUuid && canUpdateRole)) && (

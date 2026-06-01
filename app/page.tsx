@@ -17,9 +17,11 @@ import {
   Terminal,
   ChevronRight,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import ThemeSwitcher from "./components/ThemeSwitcher";
 import { SyncButton } from "./components/SyncButton";
+import { getVersion } from "@tauri-apps/api/app";
 
 interface SystemNotification {
   id: string;
@@ -51,6 +53,13 @@ const mockNotifications: SystemNotification[] = [
 
 export default function Home() {
   const { logout, hasPermission } = useAuth();
+  const [version, setVersion] = useState("");
+
+  useEffect(() => {
+    getVersion()
+      .then(setVersion)
+      .catch(() => {});
+  }, []);
 
   const modules = [
     {
@@ -146,7 +155,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
               <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-tighter">
-                Terminal 01 • v1.0.4 • Online
+                POS Terminal 01 • {version} • Online
               </p>
             </div>
           </div>

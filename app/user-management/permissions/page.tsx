@@ -61,7 +61,7 @@ export default function PermissionManagementPage() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 px-2 font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-black text-zinc-900 dark:text-zinc-100 px-2 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-2">
         {/* SIDEBAR */}
 

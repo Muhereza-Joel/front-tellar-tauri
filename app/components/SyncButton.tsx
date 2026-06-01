@@ -226,7 +226,7 @@ export function SyncButton() {
 
       {/* SYNC CONSOLE OVERLAY */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[520px] border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 z-[100]">
+        <div className="absolute right-0 mt-2 w-[520px] border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950 z-[100]">
           {/* Console Header */}
           <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50">
             <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export function SyncButton() {
                 />
                 <div className="text-left">
                   <p className="text-xs font-bold uppercase">
-                    Initialize Global Handshake
+                    Initialize Global Data Sync
                   </p>
                   <p className="text-[10px] opacity-70">
                     Synchronize all delta changes across all tables

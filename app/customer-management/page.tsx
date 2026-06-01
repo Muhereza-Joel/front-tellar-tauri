@@ -40,7 +40,7 @@ export default function CustomerManagementPage() {
 
   // Updated for GitHub Black: bg-black, sharp corners (rounded-md), and subtle borders
   const inputClass = (fieldName: string) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm outline-none transition-all
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm outline-none transition-all
     ${
       errors[fieldName]
         ? "border-red-500 focus:ring-1 focus:ring-red-500"
@@ -49,10 +49,10 @@ export default function CustomerManagementPage() {
   `;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black px-2 font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-black px-2 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-2">
         {/* SIDEBAR FORM */}
-        <section className="lg:col-span-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm h-fit sticky top-6">
+        <section className="lg:col-span-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-2 shadow-sm h-fit sticky top-6">
           {loading ? (
             <FormSkeleton />
           ) : (
@@ -64,7 +64,7 @@ export default function CustomerManagementPage() {
                 </h2>
                 {editingUuid && (
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${formData.is_active ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"}`}
+                    className={`text-[10px] font-bold px-2 py-0.5 ${formData.is_active ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"}`}
                   >
                     {formData.is_active ? "ACTIVE" : "INACTIVE"}
                   </span>
@@ -220,7 +220,7 @@ export default function CustomerManagementPage() {
                           is_walk_in: e.target.checked,
                         })
                       }
-                      className="rounded-sm border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
+                      className=" border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
                     />
                     <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-blue-600 transition-colors">
                       Walk-in
@@ -237,7 +237,7 @@ export default function CustomerManagementPage() {
                           is_active: e.target.checked,
                         })
                       }
-                      className="rounded-sm border-zinc-300 dark:border-zinc-700 text-green-600 focus:ring-0 bg-transparent"
+                      className=" border-zinc-300 dark:border-zinc-700 text-green-600 focus:ring-0 bg-transparent"
                     />
                     <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-green-600 transition-colors">
                       Active Account
@@ -247,7 +247,7 @@ export default function CustomerManagementPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
                 >
                   {editingUuid ? <Edit2 size={18} /> : <Plus size={18} />}
                   {editingUuid ? "Update Customer" : "Create Customer"}
@@ -256,7 +256,7 @@ export default function CustomerManagementPage() {
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="w-full text-zinc-500 dark:text-zinc-400 text-xs font-bold py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors mt-1"
+                    className="w-full text-zinc-500 dark:text-zinc-400 text-xs font-bold py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900  transition-colors mt-1"
                   >
                     Cancel
                   </button>
@@ -268,7 +268,7 @@ export default function CustomerManagementPage() {
 
         {/* MAIN TABLE SECTION */}
         <section className="lg:col-span-8">
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-zinc-100 dark:border-zinc-800">
@@ -281,7 +281,7 @@ export default function CustomerManagementPage() {
                       <input
                         type="text"
                         placeholder="Search customers..."
-                        className="w-full bg-zinc-50 dark:bg-zinc-900/50 border-none rounded-md pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none text-zinc-900 dark:text-zinc-100"
+                        className="w-full bg-zinc-50 dark:bg-zinc-900/50 border-none pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none text-zinc-900 dark:text-zinc-100"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -315,7 +315,7 @@ export default function CustomerManagementPage() {
                             )}
                           </div>
                           <span
-                            className={`text-[9px] font-bold w-fit px-1.5 rounded-sm ${customer.is_walk_in ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" : "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"}`}
+                            className={`text-[9px] font-bold w-fit px-1.5 ${customer.is_walk_in ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400" : "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"}`}
                           >
                             {customer.is_walk_in ? "WALK-IN" : "REGISTERED"}
                           </span>

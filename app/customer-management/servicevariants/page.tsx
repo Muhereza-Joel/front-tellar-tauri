@@ -43,7 +43,7 @@ export default function ServiceVariantsPage() {
   } = useServiceVariantViewModel();
 
   const inputClass = (fieldName: string) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm outline-none transition-all
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm outline-none transition-all
     ${
       errors[fieldName]
         ? "border-red-500 focus:ring-1 focus:ring-red-500"
@@ -52,10 +52,10 @@ export default function ServiceVariantsPage() {
   `;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black px-2 font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-black px-2 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-2">
         {/* SIDEBAR FORM */}
-        <section className="lg:col-span-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm h-fit sticky top-6">
+        <section className="lg:col-span-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm h-fit sticky top-6">
           {loading ? (
             <FormSkeleton />
           ) : (
@@ -326,7 +326,7 @@ export default function ServiceVariantsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, is_active: e.target.checked })
                     }
-                    className="rounded-sm border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
+                    className=" border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
                   />
                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                     Active Variant
@@ -335,7 +335,7 @@ export default function ServiceVariantsPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
                 >
                   {editingUuid ? <Edit2 size={18} /> : <Plus size={18} />}
                   {editingUuid ? "Update Variant" : "Create Variant"}
@@ -344,7 +344,7 @@ export default function ServiceVariantsPage() {
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="w-full text-zinc-500 dark:text-zinc-400 text-xs font-bold py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors mt-1"
+                    className="w-full text-zinc-500 dark:text-zinc-400 text-xs font-bold py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors mt-1"
                   >
                     Cancel
                   </button>
@@ -356,7 +356,7 @@ export default function ServiceVariantsPage() {
 
         {/* MAIN TABLE SECTION */}
         <section className="lg:col-span-8">
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-zinc-100 dark:border-zinc-800">
@@ -369,7 +369,7 @@ export default function ServiceVariantsPage() {
                       <input
                         type="text"
                         placeholder="Search variants..."
-                        className="w-full bg-zinc-50 dark:bg-zinc-900/50 border-none rounded-md pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full bg-zinc-50 dark:bg-zinc-900/50 border-none pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -451,7 +451,7 @@ export default function ServiceVariantsPage() {
                                 : `${variant.available_quantity} avail`}
                             </span>
                             {variant.minimum_stock_level > 0 && (
-                              <span className="text-[9px] bg-amber-100 dark:bg-amber-900/30 px-1 rounded">
+                              <span className="text-[9px] bg-amber-100 dark:bg-amber-900/30 px-1">
                                 Min: {variant.minimum_stock_level}
                               </span>
                             )}

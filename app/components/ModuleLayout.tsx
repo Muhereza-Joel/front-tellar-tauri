@@ -173,7 +173,7 @@ export default function ModuleLayout({
         {/* Breadcrumb Header for Content */}
         <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center px-8 shrink-0">
           <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-            <span>root</span>
+            <span>DASHBOARD</span>
             <span className="text-zinc-300 dark:text-zinc-700">/</span>
             <span>{title.toLowerCase().replace(/\s+/g, "_")}</span>
             <span className="text-zinc-300 dark:text-zinc-700">/</span>
@@ -183,7 +183,7 @@ export default function ModuleLayout({
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto bg-zinc-50 dark:bg-black p-2 lg:p-4">
+        <div className="flex-1 overflow-auto bg-slate-100 dark:bg-black p-2 lg:p-4">
           {children}
         </div>
       </main>

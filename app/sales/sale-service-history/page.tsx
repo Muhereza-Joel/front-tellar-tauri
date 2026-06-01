@@ -172,7 +172,7 @@ function ServiceSaleDetailsDialog({
                       <th className="px-4 py-2 text-right">Subtotal</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:text-zinc-200">
+                  <tbody className="divide-y divide-zinc-100 dark:bg-black dark:text-zinc-200">
                     {items.map((item, idx) => (
                       <tr key={idx}>
                         <td className="px-4 py-3">
@@ -347,7 +347,7 @@ export default function ServicesSalesManagementPage() {
             {/* Data Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-zinc-50/50 dark:bg-zinc-950/50 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                <thead className="bg-zinc-50/50 dark:bg-black text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">Customer</th>
                     <th className="px-6 py-4">Summary Offerings</th>
@@ -359,7 +359,7 @@ export default function ServicesSalesManagementPage() {
                     <th className="px-6 py-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:text-zinc-300 text-sm">
+                <tbody className="divide-y divide-zinc-100 dark:bg-black dark:text-zinc-300 text-sm">
                   {vm.loading ? (
                     <TableRowSkeleton />
                   ) : vm.salesHistoryList.length === 0 ? (

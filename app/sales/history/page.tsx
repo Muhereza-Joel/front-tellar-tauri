@@ -310,7 +310,7 @@ export default function SalesHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black px-2">
+    <div className="min-h-screen bg-slate-100 dark:bg-black px-2">
       <div className="max-w-7xl mx-auto space-y-4">
         {activeIndicator && (
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-blue-700 dark:text-blue-400 px-4 py-2 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
@@ -357,7 +357,7 @@ export default function SalesHistoryPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-zinc-50/50 dark:bg-zinc-950/50 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+              <thead className="bg-zinc-50/50 dark:bg-black text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-4">Customer</th>
                   <th className="px-6 py-4">Summary</th>
@@ -369,7 +369,7 @@ export default function SalesHistoryPage() {
                   <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:text-zinc-300">
+              <tbody className="divide-y divide-zinc-100 dark:bg-black dark:text-zinc-300">
                 {vm.loading ? (
                   <TableRowSkeleton />
                 ) : vm.salesList.length === 0 ? (
@@ -390,8 +390,8 @@ export default function SalesHistoryPage() {
                         key={sale.uuid}
                         className={`transition-colors group ${
                           hasBalance
-                            ? "bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-900/30"
-                            : "hover:bg-zinc-50 dark:hover:bg-zinc-950/50"
+                            ? "bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:border-zinc-700"
+                            : "hover:bg-zinc-50 dark:hover:bg-zinc-950/50 dark:border-zinc-700"
                         }`}
                       >
                         <td className="px-6 py-4 font-bold text-sm">

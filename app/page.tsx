@@ -114,7 +114,7 @@ export default function Home() {
   const filteredModules = modules.filter((m) => hasPermission(m.permission));
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-50 font-sans dark:bg-black text-zinc-900 dark:text-zinc-300">
+    <div className="flex h-screen overflow-hidden bg-slate-100 font-sans dark:bg-black text-zinc-900 dark:text-zinc-300">
       {/* 1. SLIM SIDEBAR */}
       <aside className="flex w-16 flex-col items-center border-r border-zinc-200 bg-white py-4 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mb-8 flex h-10 w-10 items-center justify-center rounded bg-blue-600 text-white">
@@ -140,7 +140,7 @@ export default function Home() {
         <header className="flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-6 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center gap-4">
             <h2 className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white uppercase">
-              System Dashboard
+              Dashboard
             </h2>
             <span className="hidden h-4 w-px bg-zinc-200 dark:bg-zinc-800 sm:block" />
             <div className="flex items-center gap-2">

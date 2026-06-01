@@ -64,13 +64,13 @@ export function PurchaseOrderList({
               placeholder="Search POs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-black w-64 text-zinc-900 dark:text-zinc-100 outline-none"
+              className="pl-9 pr-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black w-64 text-zinc-900 dark:text-zinc-100 outline-none"
             />
           </div>
           {canCreatePurchaseOrder && (
             <button
               onClick={handleCreateNew}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-all shadow-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-bold flex items-center gap-2 transition-all shadow-sm"
             >
               <Plus size={16} /> New Order
             </button>
@@ -78,7 +78,7 @@ export function PurchaseOrderList({
         </div>
       </header>
 
-      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-zinc-50 dark:bg-zinc-900/50 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800">
@@ -126,7 +126,7 @@ export function PurchaseOrderList({
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${getStatusColor(po.status)}`}
+                      className={`text-[10px] font-bold px-2 py-0.5  uppercase ${getStatusColor(po.status)}`}
                     >
                       {po.status.replace("_", " ")}
                     </span>
@@ -172,7 +172,7 @@ export function PurchaseOrderList({
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 border rounded bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-50"
+                className="px-3 py-1 border  bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-50"
               >
                 Previous
               </button>
@@ -184,7 +184,7 @@ export function PurchaseOrderList({
                   setCurrentPage(Math.min(totalPages, currentPage + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 border rounded bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-50"
+                className="px-3 py-1 border bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-50"
               >
                 Next
               </button>
@@ -192,7 +192,7 @@ export function PurchaseOrderList({
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className="border rounded px-2 py-1 bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 outline-none"
+              className="border px-2 py-1 bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 outline-none"
             >
               <option value={5}>5 per page</option>
               <option value={10}>10 per page</option>

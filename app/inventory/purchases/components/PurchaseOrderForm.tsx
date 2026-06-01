@@ -65,7 +65,7 @@ export function PurchaseOrderForm({
   isLocked,
 }: PurchaseOrderFormProps) {
   const inputClass =
-    "w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 transition-all text-zinc-900 dark:text-zinc-100";
+    "w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 transition-all text-zinc-900 dark:text-zinc-100";
   const errorClass = "border-red-500 ring-1 ring-red-500";
 
   const getRowBgClass = (item: any) => {
@@ -81,12 +81,12 @@ export function PurchaseOrderForm({
     !canEditItems && canReceiveItems && !isLocked && editingUuid;
 
   return (
-    <div className="px-2 pt-2 max-w-7xl mx-auto min-h-screen bg-zinc-50 dark:bg-black font-sans select-none">
+    <div className="px-2 pt-2 max-w-7xl mx-auto min-h-screen bg-slate-100 dark:bg-black font-sans select-none">
       <header className="flex items-center justify-between mb-2">
         <div className="flex items-center">
           <button
             onClick={() => setView("list")}
-            className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors"
+            className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -101,7 +101,7 @@ export function PurchaseOrderForm({
         <button
           onClick={handleSave}
           disabled={saving || isLocked}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {saving && <Loader2 size={16} className="animate-spin" />}
           {saving ? "Saving..." : "Save Order"}
@@ -109,13 +109,13 @@ export function PurchaseOrderForm({
       </header>
 
       {errors.general && (
-        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-md text-sm">
+        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm">
           {errors.general}
         </div>
       )}
 
       {showReceivingBanner && (
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 rounded-md text-sm">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 text-sm">
           ⚠️ This order is no longer in draft. Only received quantities and
           notes can be updated.
         </div>
@@ -123,7 +123,7 @@ export function PurchaseOrderForm({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         <section className="lg:col-span-4 space-y-4">
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 space-y-4 shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 space-y-4 shadow-sm">
             <div>
               <label className="text-[10px] font-bold uppercase text-zinc-500 mb-1 block tracking-wider">
                 PO Number *
@@ -244,7 +244,7 @@ export function PurchaseOrderForm({
         </section>
 
         <section className="lg:col-span-8 space-y-2">
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-sm p-6 space-y-4">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm p-6 space-y-4">
             <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
               Order Line Items
             </h2>
@@ -274,7 +274,7 @@ export function PurchaseOrderForm({
               {showProductDropdown &&
                 productSuggestions.length > 0 &&
                 canEditItems && (
-                  <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-lg max-h-60 overflow-y-auto z-50 divide-y divide-zinc-100 dark:divide-zinc-900">
+                  <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-lg max-h-60 overflow-y-auto z-50 divide-y divide-zinc-100 dark:divide-zinc-900">
                     {productSuggestions.map((product) => (
                       <div
                         key={product.uuid}
@@ -299,7 +299,7 @@ export function PurchaseOrderForm({
             )}
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border divide-y divide-zinc-200 dark:divide-zinc-800 border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden">
+              <table className="w-full text-left border divide-y divide-zinc-200 dark:divide-zinc-800 border-zinc-200 dark:border-zinc-800 overflow-hidden">
                 <thead className="bg-zinc-50 dark:bg-zinc-900/50 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                   <tr>
                     <th className="px-4 py-3 w-1/3">Product</th>
@@ -343,7 +343,7 @@ export function PurchaseOrderForm({
                             <input
                               type="number"
                               min="1"
-                              className="w-20 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 text-center font-mono text-zinc-900 dark:text-zinc-100"
+                              className="w-20 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 px-2 py-1 text-center font-mono text-zinc-900 dark:text-zinc-100"
                               value={item.quantity}
                               onChange={(e) =>
                                 updateItem(
@@ -360,7 +360,7 @@ export function PurchaseOrderForm({
                               type="number"
                               min="0"
                               max={item.quantity}
-                              className={`w-20 bg-white dark:bg-black border rounded px-2 py-1 text-center font-mono ${
+                              className={`w-20 bg-white dark:bg-black border px-2 py-1 text-center font-mono ${
                                 isFullyReceived
                                   ? "border-green-500 dark:border-green-600 text-green-700 dark:text-green-400"
                                   : isPartial
@@ -383,7 +383,7 @@ export function PurchaseOrderForm({
                               type="number"
                               min="0"
                               step="0.01"
-                              className="w-28 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 text-right font-mono text-zinc-900 dark:text-zinc-100"
+                              className="w-28 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 px-2 py-1 text-right font-mono text-zinc-900 dark:text-zinc-100"
                               value={item.unit_price}
                               onChange={(e) =>
                                 updateItem(
@@ -421,7 +421,7 @@ export function PurchaseOrderForm({
           </div>
 
           <div className="flex justify-end">
-            <div className="w-full max-w-xs bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 space-y-3 shadow-sm">
+            <div className="w-full max-w-xs bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 space-y-3 shadow-sm">
               <div className="flex justify-between text-xs font-bold text-zinc-500 uppercase tracking-tighter">
                 <span>Subtotal</span>
                 <span className="font-mono text-zinc-900 dark:text-zinc-100">

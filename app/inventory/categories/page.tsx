@@ -46,7 +46,7 @@ export default function CategoryManagementPage() {
 
   // Updated for GitHub Black: bg-black, sharp corners (rounded-md), and subtle borders
   const inputStyle = (errorKey: string) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm outline-none transition-all
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm outline-none transition-all
     ${
       errors[errorKey]
         ? "border-red-500 focus:ring-1 focus:ring-red-500"
@@ -67,12 +67,12 @@ export default function CategoryManagementPage() {
   };
 
   return (
-    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-zinc-50 dark:bg-black font-sans">
+    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-slate-100 dark:bg-black font-sans">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         {/* FORM SECTION */}
         {(canCreateCategory || (editingUuid && canUpdateCategory)) && (
           <section className="lg:col-span-4 space-y-6">
-            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
+            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
               <header className="mb-6">
                 <h1 className="text-lg font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <Layers className="text-blue-500" size={20} />
@@ -172,7 +172,7 @@ export default function CategoryManagementPage() {
                 <div className="flex gap-2 pt-2">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
                   >
                     {editingUuid ? <Edit2 size={16} /> : <Plus size={16} />}
                     {editingUuid ? "Update" : "Save Category"}
@@ -181,7 +181,7 @@ export default function CategoryManagementPage() {
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="px-4 py-2 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs font-bold"
+                      className="px-4 py-2 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs font-bold"
                     >
                       Cancel
                     </button>
@@ -198,7 +198,7 @@ export default function CategoryManagementPage() {
     ${canCreateCategory || (editingUuid && canUpdateCategory) ? "lg:col-span-8 space-y-4" : "lg:col-span-12 space-y-4"}
   `}
         >
-          <div className="flex items-center justify-between gap-4 bg-white dark:bg-black p-4 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center justify-between gap-4 bg-white dark:bg-black p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="relative flex-1">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
@@ -207,14 +207,14 @@ export default function CategoryManagementPage() {
               <input
                 type="text"
                 placeholder="Search categories..."
-                className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-none rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none text-zinc-900 dark:text-zinc-100"
+                className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-none text-sm focus:ring-1 focus:ring-blue-500 outline-none text-zinc-900 dark:text-zinc-100"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800  overflow-hidden shadow-sm">
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-zinc-50 dark:bg-zinc-900/50 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
@@ -233,7 +233,7 @@ export default function CategoryManagementPage() {
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-zinc-100 dark:bg-zinc-900 rounded-md text-zinc-400">
+                            <div className="p-2 bg-zinc-100 dark:bg-zinc-900 text-zinc-400">
                               <FolderTree size={14} />
                             </div>
                             <div className="flex items-center flex-wrap gap-1 text-xs">

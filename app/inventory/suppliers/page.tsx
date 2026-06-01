@@ -103,7 +103,7 @@ export default function SupplierManagementPage() {
   }, [errors, step, setStep]);
 
   const inputStyle = (errorKey: string) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm outline-none transition-all
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm outline-none transition-all
     ${
       errors[errorKey]
         ? "border-red-500 focus:ring-1 focus:ring-red-500"
@@ -112,12 +112,12 @@ export default function SupplierManagementPage() {
   `;
 
   return (
-    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-zinc-50 dark:bg-black font-sans">
+    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-slate-100 dark:bg-black font-sans">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         {/* FORM SECTION */}
         {(canCreateSupplier || (editingUuid && canUpdateSupplier)) && (
           <section className="lg:col-span-4 space-y-6">
-            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm overflow-y-auto max-h-[100vh] no-scrollbar">
+            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm overflow-y-auto max-h-[100vh] no-scrollbar">
               <header className="mb-6">
                 <h1 className="text-lg font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <Truck className="text-blue-500" size={20} />
@@ -458,7 +458,7 @@ export default function SupplierManagementPage() {
                     <button
                       type="button"
                       onClick={prevStep}
-                      className="px-4 py-2 border rounded-md text-xs"
+                      className="px-4 py-2 border text-xs"
                     >
                       Back
                     </button>
@@ -468,7 +468,7 @@ export default function SupplierManagementPage() {
                     <button
                       type="button"
                       onClick={nextStep}
-                      className="flex-1 bg-zinc-800 text-white py-2 rounded-md text-xs font-bold"
+                      className="flex-1 bg-zinc-800 text-white py-2 text-xs font-bold"
                     >
                       Next
                     </button>
@@ -477,7 +477,7 @@ export default function SupplierManagementPage() {
                   {step === 4 && (
                     <button
                       type="submit"
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-md font-bold"
+                      className="flex-1 bg-blue-600 text-white py-2 font-bold"
                     >
                       {editingUuid ? "Update Supplier" : "Save Supplier"}
                     </button>
@@ -487,7 +487,7 @@ export default function SupplierManagementPage() {
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="px-4 py-2 border rounded-md text-xs"
+                      className="px-4 py-2 border text-xs"
                     >
                       Cancel
                     </button>
@@ -504,7 +504,7 @@ export default function SupplierManagementPage() {
     ${canCreateSupplier || (editingUuid && canUpdateSupplier) ? "lg:col-span-8 space-y-4" : "lg:col-span-12 space-y-4"}
   `}
         >
-          <div className="bg-white dark:bg-black p-4 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-4">
+          <div className="bg-white dark:bg-black p-4  border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-4">
             <div className="relative flex-1">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
@@ -513,14 +513,14 @@ export default function SupplierManagementPage() {
               <input
                 type="text"
                 placeholder="Search suppliers..."
-                className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-none rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none text-zinc-900 dark:text-zinc-100"
+                className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-none  text-sm focus:ring-1 focus:ring-blue-500 outline-none text-zinc-900 dark:text-zinc-100"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-zinc-50 dark:bg-zinc-900/50 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">

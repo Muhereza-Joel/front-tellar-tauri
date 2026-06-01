@@ -50,7 +50,7 @@ export default function ProductVariantsPage() {
 
   // Updated input class for GitHub Black style: bg-black and sharper corners
   const getInputClass = (name: string) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm 
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm 
     text-zinc-900 dark:text-zinc-100 outline-none transition-all
     ${
       formErrors[name]
@@ -60,10 +60,10 @@ export default function ProductVariantsPage() {
   `;
 
   return (
-    <div className="px-2 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-2 min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100">
+    <div className="px-2 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-2 min-h-screen bg-slate-100 dark:bg-black text-zinc-900 dark:text-zinc-100">
       {(canCreateVariant || (editingUuid && canUpdateVariant)) && (
         <section className="lg:col-span-4">
-          <div className="bg-white dark:bg-black rounded-lg p-6 border border-zinc-200 dark:border-zinc-800 sticky top-0 shadow-sm">
+          <div className="bg-white dark:bg-black p-6 border border-zinc-200 dark:border-zinc-800 sticky top-0 shadow-sm">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
               <Layers className="text-blue-600" size={20} />
               {editingUuid ? "Update Variant" : "New Variant"}
@@ -205,7 +205,7 @@ export default function ProductVariantsPage() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-md transition-all disabled:opacity-50 active:scale-[0.99] shadow-sm"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 transition-all disabled:opacity-50 active:scale-[0.99] shadow-sm"
               >
                 {isSaving
                   ? "Saving..."
@@ -233,7 +233,7 @@ export default function ProductVariantsPage() {
     ${canCreateVariant || (editingUuid && canUpdateVariant) ? "lg:col-span-8 space-y-4" : "lg:col-span-12 space-y-4"}
   `}
       >
-        <div className="bg-white dark:bg-black p-4 rounded-md flex items-center gap-3 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="bg-white dark:bg-black p-4 flex items-center gap-3 border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <Search size={18} className="text-zinc-500" />
           <input
             className="bg-transparent outline-none text-sm w-full text-zinc-900 dark:text-zinc-100"
@@ -243,7 +243,7 @@ export default function ProductVariantsPage() {
           />
         </div>
 
-        <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
           <table className="w-full text-left text-sm border-collapse">
             <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
               <tr>

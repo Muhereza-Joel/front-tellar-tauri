@@ -32,7 +32,7 @@ export default function InventoryPage() {
   } = useInventoryViewModel(activeMode);
 
   return (
-    <div className="space-y-6 px-2 max-w-7xl mx-auto min-h-screen bg-zinc-50 dark:bg-black">
+    <div className="space-y-6 px-2 max-w-7xl mx-auto min-h-screen bg-slate-100 dark:bg-black">
       {/* Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
@@ -63,11 +63,11 @@ export default function InventoryPage() {
       </div>
 
       {/* Mode Toggle & Search */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-black p-4 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-black p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="flex gap-2">
           <button
             onClick={() => setActiveMode("products")}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-md transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold transition-all ${
               activeMode === "products"
                 ? "bg-blue-50 text-blue-600 dark:bg-zinc-800 dark:text-blue-400"
                 : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
@@ -77,7 +77,7 @@ export default function InventoryPage() {
           </button>
           <button
             onClick={() => setActiveMode("variants")}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-md transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold transition-all ${
               activeMode === "variants"
                 ? "bg-blue-50 text-blue-600 dark:bg-zinc-800 dark:text-blue-400"
                 : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
@@ -94,7 +94,7 @@ export default function InventoryPage() {
           <input
             type="text"
             placeholder={`Search ${activeMode}...`}
-            className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 rounded-md text-sm outline-none text-zinc-900 dark:text-zinc-100"
+            className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 text-sm outline-none text-zinc-900 dark:text-zinc-100"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -102,7 +102,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
@@ -141,7 +141,7 @@ export default function InventoryPage() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-md bg-zinc-100 dark:bg-zinc-800">
+                        <div className="p-2 bg-zinc-100 dark:bg-zinc-800">
                           {activeMode === "products" ? (
                             <Package size={16} className="text-blue-600" />
                           ) : (
@@ -153,7 +153,7 @@ export default function InventoryPage() {
                             {item.name}
                           </p>
                           <div className="flex items-center gap-2 text-[10px] text-zinc-500 mt-1">
-                            <span className="font-mono bg-zinc-100 dark:bg-zinc-900 px-1 rounded">
+                            <span className="font-mono bg-zinc-100 dark:bg-zinc-900 px-1">
                               {item.sku}
                             </span>
                             {activeMode === "products" &&
@@ -248,7 +248,7 @@ function StatCard({
   color = "text-zinc-900 dark:text-zinc-50",
 }: any) {
   return (
-    <div className="p-5 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md">
+    <div className="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
           {title}

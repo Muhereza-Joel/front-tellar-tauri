@@ -45,7 +45,7 @@ export default function UserManagementPage() {
   const canDeleteUser = hasPermission("delete_user");
 
   const inputClass = (fieldName: string) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm outline-none transition-all
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm outline-none transition-all
     ${
       errors[fieldName]
         ? "border-red-500 focus:ring-1 focus:ring-red-500"
@@ -59,7 +59,7 @@ export default function UserManagementPage() {
         {/* SIDEBAR FORM */}
 
         {(canCreateUser || (editingUuid && canUpdateUser)) && (
-          <section className="lg:col-span-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm h-fit sticky top-6">
+          <section className="lg:col-span-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm h-fit sticky top-6">
             {loading ? (
               <FormSkeleton />
             ) : (
@@ -70,7 +70,7 @@ export default function UserManagementPage() {
                 </h2>
 
                 {errors.form && (
-                  <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-3 text-xs text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30">
+                  <div className=" bg-red-50 dark:bg-red-900/20 p-3 text-xs text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30">
                     {errors.form}
                   </div>
                 )}
@@ -196,7 +196,7 @@ export default function UserManagementPage() {
                   <div className="pt-2 space-y-2">
                     <button
                       type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
                     >
                       {editingUuid ? <Edit2 size={18} /> : <Plus size={18} />}
                       {editingUuid ? "Update Record" : "Create User"}
@@ -206,7 +206,7 @@ export default function UserManagementPage() {
                       <button
                         type="button"
                         onClick={resetForm}
-                        className="w-full text-zinc-500 dark:text-zinc-400 text-xs font-bold py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors"
+                        className="w-full text-zinc-500 dark:text-zinc-400 text-xs font-bold py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                       >
                         Cancel Edit
                       </button>
@@ -224,7 +224,7 @@ export default function UserManagementPage() {
     ${canCreateUser || (editingUuid && canUpdateUser) ? "lg:col-span-8 space-y-4" : "lg:col-span-12 space-y-4"}
   `}
         >
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-white dark:bg-black">
@@ -237,7 +237,7 @@ export default function UserManagementPage() {
                       <input
                         type="text"
                         placeholder="Filter by name or email..."
-                        className="w-full bg-zinc-50 dark:bg-zinc-900/50 border-none rounded-md pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all text-zinc-900 dark:text-zinc-100"
+                        className="w-full bg-zinc-50 dark:bg-zinc-900/50 border-none pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all text-zinc-900 dark:text-zinc-100"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -304,7 +304,7 @@ export default function UserManagementPage() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
                             <span
-                              className={`text-[9px] font-bold px-2 py-0.5 rounded-sm border w-fit ${
+                              className={`text-[9px] font-bold px-2 py-0.5 border w-fit ${
                                 user.is_active
                                   ? "bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400"
                                   : "bg-zinc-100 text-zinc-400 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800"

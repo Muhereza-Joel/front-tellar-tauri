@@ -15,24 +15,24 @@ import { useAuth } from "../../context/AuthContext";
 const RoleFormSkeleton = () => (
   <div className="space-y-4 animate-pulse">
     <div>
-      <div className="h-3 w-20 bg-zinc-100 dark:bg-zinc-900 rounded mb-2" />
-      <div className="h-10 bg-zinc-50 dark:bg-zinc-900/50 rounded-md" />
+      <div className="h-3 w-20 bg-zinc-100 dark:bg-zinc-900 mb-2" />
+      <div className="h-10 bg-zinc-50 dark:bg-zinc-900/50" />
     </div>
-    <div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-md mt-4" />
+    <div className="h-10 bg-zinc-100 dark:bg-zinc-800 mt-4" />
   </div>
 );
 
 const RoleRowSkeleton = () => (
   <tr className="animate-pulse">
     <td className="px-6 py-4">
-      <div className="h-5 w-32 bg-zinc-100 dark:bg-zinc-900 rounded mb-2" />
-      <div className="h-3 w-48 bg-zinc-50 dark:bg-zinc-900/50 rounded" />
+      <div className="h-5 w-32 bg-zinc-100 dark:bg-zinc-900 mb-2" />
+      <div className="h-3 w-48 bg-zinc-50 dark:bg-zinc-900/50" />
     </td>
     <td className="px-6 py-4">
       <div className="h-6 w-24 bg-zinc-100 dark:bg-zinc-900 rounded-full" />
     </td>
     <td className="px-6 py-4 text-right">
-      <div className="h-8 w-8 bg-zinc-50 dark:bg-zinc-900 ml-auto rounded-md" />
+      <div className="h-8 w-8 bg-zinc-50 dark:bg-zinc-900 ml-auto" />
     </td>
   </tr>
 );
@@ -58,7 +58,7 @@ export default function RolesPage() {
   const canDeleteRole = hasPermission("delete_role");
 
   const inputStyle = (errorKey: keyof typeof errors) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm outline-none transition-all
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm outline-none transition-all
     ${
       errors[errorKey]
         ? "border-red-500 focus:ring-1 focus:ring-red-500"
@@ -72,7 +72,7 @@ export default function RolesPage() {
         {/* FORM SECTION */}
         {(canCreateRole || (editingUuid && canUpdateRole)) && (
           <section className="lg:col-span-4">
-            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
+            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800  p-6 shadow-sm">
               <header className="mb-6">
                 <h1 className="text-lg font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <ShieldCheck className="text-blue-500" size={20} />
@@ -114,7 +114,7 @@ export default function RolesPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
                     >
                       {loading ? (
                         <Loader2 className="animate-spin" size={16} />
@@ -129,7 +129,7 @@ export default function RolesPage() {
                       <button
                         type="button"
                         onClick={resetForm}
-                        className="px-4 py-2 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs font-bold transition-colors"
+                        className="px-4 py-2 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-xs font-bold transition-colors"
                       >
                         Cancel
                       </button>
@@ -147,7 +147,7 @@ export default function RolesPage() {
     ${canCreateRole || (editingUuid && canUpdateRole) ? "lg:col-span-8 space-y-4" : "lg:col-span-12 space-y-4"}
   `}
         >
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-zinc-50 dark:bg-zinc-900/50 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
@@ -190,11 +190,11 @@ export default function RolesPage() {
                         </td>
                         <td className="px-6 py-4">
                           {role.tenant_id ? (
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-100 dark:border-emerald-800/50 uppercase">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-100 dark:border-emerald-800/50 uppercase">
                               <Shield size={10} /> Tenant
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 uppercase">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 uppercase">
                               <Globe size={10} /> Global
                             </div>
                           )}

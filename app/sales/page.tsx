@@ -32,12 +32,12 @@ export default function NewSalePage() {
   `;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black px-2">
+    <div className="min-h-screen bg-slate-100 dark:bg-black px-2">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
           {/* Left Panel: Catalog & Configuration */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
               <h2 className="text-xs font-black uppercase text-zinc-400 mb-6 flex items-center gap-2 tracking-widest">
                 <Package size={16} /> Catalog Selection
               </h2>
@@ -65,7 +65,7 @@ export default function NewSalePage() {
                 </div>
 
                 {vm.selectedProductUuid && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-zinc-50 dark:bg-zinc-950 animate-in fade-in slide-in-from-top-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-zinc-50 dark:bg-black animate-in fade-in slide-in-from-top-1">
                     {vm.availableVariants.length > 0 && (
                       <div>
                         <label className="text-[10px] font-bold uppercase text-zinc-500 mb-1 block">
@@ -113,7 +113,7 @@ export default function NewSalePage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
               <h2 className="text-xs font-black uppercase text-zinc-400 mb-6 flex items-center gap-2 tracking-widest">
                 <User size={16} /> Transaction Meta
               </h2>

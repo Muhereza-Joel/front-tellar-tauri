@@ -61,7 +61,7 @@ export default function ProductManagementPage() {
   };
 
   const inputStyle = (errorKey: string) => `
-    w-full bg-white dark:bg-black border rounded-md px-3 py-2 text-sm 
+    w-full bg-white dark:bg-black border px-3 py-2 text-sm 
     text-zinc-900 dark:text-zinc-100 outline-none transition-all
     ${
       errors[errorKey]
@@ -77,7 +77,7 @@ export default function ProductManagementPage() {
     <button
       type="button"
       onClick={() => setActiveTab(id)}
-      className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-md transition-all ${
+      className={`flex items-center gap-2 px-4 py-2 text-xs font-bold transition-all ${
         activeTab === id
           ? "bg-blue-50 text-blue-600 dark:bg-zinc-800 dark:text-blue-400"
           : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
@@ -88,11 +88,11 @@ export default function ProductManagementPage() {
   );
 
   return (
-    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-zinc-50 dark:bg-black font-sans">
+    <div className="px-2 max-w-7xl mx-auto min-h-screen bg-slate-100 dark:bg-black font-sans">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         {(canCreateProduct || (editingUuid && canUpdateProduct)) && (
           <section className="lg:col-span-4 space-y-6 lg:sticky lg:top-0 self-start">
-            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
+            <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
               <header className="mb-6 flex justify-between items-center">
                 <h1 className="text-lg font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <Package className="text-blue-600" size={20} />
@@ -101,7 +101,7 @@ export default function ProductManagementPage() {
                 {editingUuid && (
                   <button
                     onClick={resetForm}
-                    className="text-[10px] bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 px-2 py-1 rounded-md font-bold hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                    className="text-[10px] bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 px-2 py-1 font-bold hover:bg-zinc-200 dark:hover:bg-zinc-800"
                   >
                     CANCEL
                   </button>
@@ -231,7 +231,7 @@ export default function ProductManagementPage() {
                                 is_active: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 rounded-sm border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
+                            className="w-4 h-4 border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
                           />
                           <span className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase">
                             Active
@@ -247,7 +247,7 @@ export default function ProductManagementPage() {
                                 has_inventory: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 rounded-sm border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
+                            className="w-4 h-4 border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-0 bg-transparent"
                           />
                           <span className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase">
                             Track Stock
@@ -260,7 +260,7 @@ export default function ProductManagementPage() {
                   {activeTab === "attributes" && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-1">
                       {attributes.length === 0 ? (
-                        <div className="text-center py-10 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-md">
+                        <div className="text-center py-10 border border-dashed border-zinc-200 dark:border-zinc-800">
                           <p className="text-xs text-zinc-400 italic">
                             No dynamic attributes defined.
                           </p>
@@ -386,7 +386,7 @@ export default function ProductManagementPage() {
                           />
                         </div>
                       </div>
-                      <div className="p-4 bg-zinc-50 dark:bg-black border border-zinc-100 dark:border-zinc-800 rounded-md space-y-3">
+                      <div className="p-4 bg-zinc-50 dark:bg-black border border-zinc-100 dark:border-zinc-800 space-y-3">
                         <p className="text-[10px] font-black text-zinc-500 uppercase">
                           Taxation
                         </p>
@@ -413,7 +413,7 @@ export default function ProductManagementPage() {
                                     is_tax_inclusive: e.target.checked,
                                   })
                                 }
-                                className="w-4 h-4 rounded-sm text-blue-600 focus:ring-0 bg-transparent"
+                                className="w-4 h-4 text-blue-600 focus:ring-0 bg-transparent"
                               />
                               <span className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase">
                                 Inclusive
@@ -429,7 +429,7 @@ export default function ProductManagementPage() {
                 <div className="pt-6 mt-auto">
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-md shadow-sm transition-all active:scale-[0.99]"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 shadow-sm transition-all active:scale-[0.99]"
                   >
                     {editingUuid ? "Update Product" : "Create Product"}
                   </button>
@@ -444,7 +444,7 @@ export default function ProductManagementPage() {
     ${canCreateProduct || (editingUuid && canUpdateProduct) ? "lg:col-span-8 space-y-4" : "lg:col-span-12 space-y-4"}
   `}
         >
-          <div className="sticky top-0 z-10 bg-white dark:bg-black p-4 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-4">
+          <div className="sticky top-0 z-10 bg-white dark:bg-black p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-4">
             <div className="relative flex-1">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
@@ -453,14 +453,14 @@ export default function ProductManagementPage() {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 rounded-md text-sm outline-none text-zinc-900 dark:text-zinc-100"
+                className="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 text-sm outline-none text-zinc-900 dark:text-zinc-100"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -481,7 +481,7 @@ export default function ProductManagementPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-start gap-3">
                             <div
-                              className={`p-2 rounded-md mt-1 ${product.is_active ? "bg-blue-50 text-blue-600 dark:bg-zinc-800 dark:text-blue-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}
+                              className={`p-2 mt-1 ${product.is_active ? "bg-blue-50 text-blue-600 dark:bg-zinc-800 dark:text-blue-400" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800"}`}
                             >
                               <Box size={16} />
                             </div>
@@ -490,7 +490,7 @@ export default function ProductManagementPage() {
                                 {product.name}
                               </p>
                               <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-                                <span className="font-mono bg-zinc-100 dark:bg-zinc-900 px-1 rounded-sm">
+                                <span className="font-mono bg-zinc-100 dark:bg-zinc-900 px-1">
                                   {product.sku}
                                 </span>
                                 <span>•</span>

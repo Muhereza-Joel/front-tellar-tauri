@@ -65,7 +65,7 @@ export default function DealershipNotesPage() {
           {/* LEFT COLUMN: NOTE PAD ENTRY SHEET */}
           <form
             onSubmit={vm.handleSave}
-            className="lg:col-span-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm space-y-5"
+            className="lg:col-span-4 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm space-y-5"
           >
             <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h2 className="text-xs font-black uppercase text-zinc-400 flex items-center gap-2 tracking-widest">
@@ -178,7 +178,7 @@ export default function DealershipNotesPage() {
           </form>
 
           {/* RIGHT COLUMN: SEARCHABLE TIMELINE STREAM */}
-          <div className="lg:col-span-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+          <div className="lg:col-span-8 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
             {/* Realtime Filtering Input Row */}
             <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50">
               <div className="relative w-full">

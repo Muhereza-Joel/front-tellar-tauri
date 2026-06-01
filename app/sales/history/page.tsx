@@ -369,7 +369,7 @@ export default function SalesHistoryPage() {
                   <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:bg-black dark:text-zinc-300">
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:bg-black dark:text-zinc-300">
                 {vm.loading ? (
                   <TableRowSkeleton />
                 ) : vm.salesList.length === 0 ? (

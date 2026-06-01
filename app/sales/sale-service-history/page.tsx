@@ -351,7 +351,7 @@ export default function ServicesSalesManagementPage() {
                   <tr>
                     <th className="px-6 py-4">Customer</th>
                     <th className="px-6 py-4">Summary Offerings</th>
-                    <th className="px-6 py-4">Booking Date</th>
+                    <th className="px-6 py-4">Service Date</th>
                     <th className="px-6 py-4 text-right">Total Due</th>
                     <th className="px-6 py-4 text-right">Discount</th>
                     <th className="px-6 py-4 text-right">Balance Due</th>
@@ -359,7 +359,7 @@ export default function ServicesSalesManagementPage() {
                     <th className="px-6 py-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:bg-black dark:text-zinc-300 text-sm">
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:bg-black dark:text-zinc-300">
                   {vm.loading ? (
                     <TableRowSkeleton />
                   ) : vm.salesHistoryList.length === 0 ? (

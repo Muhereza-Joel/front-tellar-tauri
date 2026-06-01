@@ -45,10 +45,10 @@ export default function ModuleLayout({
     : [{ items: items }];
 
   return (
-    <div className="flex h-screen w-full bg-zinc-50 dark:bg-black overflow-hidden font-sans selection:bg-blue-500/30">
+    <div className="flex h-screen w-full bg-zinc-50 dark:bg-zinc-900 overflow-hidden font-sans selection:bg-blue-500/30">
       {/* Sidebar - Sharp Borders & High Density */}
       <aside
-        className={`flex flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 transition-all duration-300 ease-in-out ${
+        className={`flex flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-300 ease-in-out ${
           isCollapsed ? "w-16" : "w-64"
         }`}
       >

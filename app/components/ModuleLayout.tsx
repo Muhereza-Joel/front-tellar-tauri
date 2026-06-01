@@ -81,7 +81,7 @@ export default function ModuleLayout({
         <div className="px-3 py-4">
           <Link
             href="/"
-            className={`flex items-center gap-3 px-2 py-2 text-[10px] font-black uppercase tracking-normal text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${isCollapsed ? "justify-center" : ""}`}
+            className={`flex items-center gap-3 px-2 py-2 text-[10px] font-black uppercase tracking-normal text-blue-950 dark:text-blue-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${isCollapsed ? "justify-center" : ""}`}
           >
             <ChevronLeft size={14} className={isCollapsed ? "" : "-ml-1"} />
             {!isCollapsed && <span>Return to Mainframe</span>}
@@ -96,7 +96,7 @@ export default function ModuleLayout({
             return (
               <div key={groupIndex} className="space-y-0.5">
                 {group.groupHeader && !isCollapsed && (
-                  <div className="px-6 py-2 text-[9px] font-black tracking-[0.2em] text-zinc-400 uppercase dark:text-zinc-500">
+                  <div className="px-6 py-2 text-[9px] font-black tracking-[0.2em] text-zinc-700 uppercase dark:text-zinc-500">
                     {group.groupHeader}
                   </div>
                 )}
@@ -112,7 +112,7 @@ export default function ModuleLayout({
                       } ${
                         isActive
                           ? "bg-blue-50/50 text-blue-600 dark:bg-blue-900/10 dark:text-blue-400"
-                          : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          : "text-black dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
                       {/* Active Indicator Bar */}

@@ -37,6 +37,11 @@ const SYNCABLE_TABLES = [
   "suppliers",
   "sales",
   "sale_items",
+  "service_sales",
+  "service_sale_items",
+  "expenses",
+  "discounts",
+  "notes",
 ] as const;
 
 type TableName = (typeof SYNCABLE_TABLES)[number];

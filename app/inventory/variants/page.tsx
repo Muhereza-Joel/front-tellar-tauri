@@ -105,14 +105,14 @@ export default function ProductVariantsPage() {
                 })()}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 mb-1">
-                    Type
+                    VARIANT ATTRIBUTE
                   </label>
                   <input
                     className={getInputClass("attribute_type")}
-                    placeholder="e.g. Color"
+                    placeholder="e.g. Material"
                     value={formData.attribute_type}
                     onChange={(e) =>
                       setFormData({
@@ -121,6 +121,13 @@ export default function ProductVariantsPage() {
                       })
                     }
                   />
+                  <div className="mt-1 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/30">
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      <strong>Important:</strong> The variant attribute selected
+                      here should be the one that directly affects the product's
+                      price (for example: Size, Material etc).
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-500 dark:text-zinc-400 mb-1">
@@ -128,7 +135,7 @@ export default function ProductVariantsPage() {
                   </label>
                   <input
                     className={getInputClass("attribute_value")}
-                    placeholder="e.g. Red"
+                    placeholder="e.g. Heavy"
                     value={formData.attribute_value}
                     onChange={(e) =>
                       setFormData({
@@ -298,7 +305,7 @@ export default function ProductVariantsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-bold text-green-600 dark:text-green-500 text-base">
-                        ${v.selling_price}
+                        Ugx {v.selling_price}
                       </span>
                       <span className="text-[10px] text-zinc-400 ml-1 italic">
                         / {itemUnitSingular}

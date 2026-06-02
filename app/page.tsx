@@ -63,12 +63,20 @@ export default function Home() {
 
   const modules = [
     {
+      id: "purchases",
+      title: "Procurement",
+      icon: <ShoppingCart size={20} />,
+      href: "/procurement/purchases",
+      permission: "inventory_module",
+      desc: "Manage Purchase Orders & Suppliers",
+    },
+    {
       id: "inventory",
       title: "Inventory",
       icon: <Package size={20} />,
       href: "/inventory",
       permission: "inventory_module",
-      desc: "Stock & Suppliers",
+      desc: "Stock Flows & Product Management",
     },
     {
       id: "customers",
@@ -76,7 +84,7 @@ export default function Home() {
       icon: <Users size={20} />,
       href: "/customer-management",
       permission: "customers_module",
-      desc: "Profiles & Records",
+      desc: "Manage Customers Profiles & Services You Offer",
     },
     {
       id: "sales",
@@ -85,6 +93,14 @@ export default function Home() {
       href: "/sales",
       permission: "sales_module",
       desc: "POS Terminal",
+    },
+    {
+      id: "debtors",
+      title: "Debtors",
+      icon: <Users size={20} />,
+      href: "/sales/expenses",
+      permission: "expenses_module",
+      desc: "See customers you demand",
     },
     {
       id: "expenses",

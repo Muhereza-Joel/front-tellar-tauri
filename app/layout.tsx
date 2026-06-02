@@ -11,6 +11,7 @@ import LicenseGuard from "./components/LicenseGuard";
 import { NotificationProvider } from "./context/NotificationContext";
 import UpdateNotification from "./components/UpdateNotification";
 import TimeGuard from "./components/guards/TimeGuard";
+import { SessionWatchdog } from "./components/SessionWatchdog";
 
 export const metadata: Metadata = {
   title: "FrontTela",
@@ -33,7 +34,9 @@ export default function RootLayout({
             <TimeGuard>
               <LicenseGuard>
                 <AuthProvider>
-                  <AuthGuard>{children}</AuthGuard>
+                  <SessionWatchdog>
+                    <AuthGuard>{children}</AuthGuard>
+                  </SessionWatchdog>
                 </AuthProvider>
               </LicenseGuard>
             </TimeGuard>

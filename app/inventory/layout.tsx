@@ -2,14 +2,12 @@
 
 import {
   Package,
-  Truck,
   Tags,
   Badge,
   Ruler,
   SlidersHorizontal,
   Box,
   Boxes,
-  ShoppingCart,
 } from "lucide-react";
 import ModuleLayout from "../components/ModuleLayout";
 import { useAuth } from "../context/AuthContext";
@@ -26,44 +24,28 @@ export default function InventoryLayout({
       groupHeader: "Stock & Products",
       items: [
         {
-          label: "Stock Registry",
+          label: "Stock Overview",
           icon: <Package size={20} />,
           href: "/inventory",
           requiredPermission: "view_product",
         },
         {
-          label: "Products",
+          label: "Add Products",
           icon: <Box size={20} />,
           href: "/inventory/products",
           requiredPermission: "view_product",
         },
         {
-          label: "Product Variants",
+          label: "Add Product Variants",
           icon: <Boxes size={20} />,
           href: "/inventory/variants",
           requiredPermission: "view_variants",
         },
       ],
     },
+
     {
-      groupHeader: "Procurement",
-      items: [
-        {
-          label: "Purchase Orders",
-          icon: <ShoppingCart size={20} />,
-          href: "/inventory/purchases",
-          requiredPermission: "view_purchases",
-        },
-        {
-          label: "Suppliers",
-          icon: <Truck size={20} />,
-          href: "/inventory/suppliers",
-          requiredPermission: "view_suppliers",
-        },
-      ],
-    },
-    {
-      groupHeader: "Configuration",
+      groupHeader: "Inventory Configuration",
       items: [
         {
           label: "Product Attributes",

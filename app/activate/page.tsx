@@ -37,7 +37,7 @@ export default function ActivatePage() {
       <div className="max-w-md w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 shadow-sm">
         <div className="text-center mb-6">
           <ShieldCheck className="mx-auto h-12 w-12 text-blue-600" />
-          <h2 className="mt-4 text-xl font-bold">Activate License</h2>
+          <h2 className="mt-4 text-xl font-bold">Unlock FrontTella</h2>
           <p className="text-sm text-zinc-500 mt-1">
             Enter your license key to continue
           </p>
@@ -79,7 +79,7 @@ export default function ActivatePage() {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {loading ? "Activating..." : "Activate"}
+            {loading ? "Openning..." : "Open"}
           </button>
         </form>
 

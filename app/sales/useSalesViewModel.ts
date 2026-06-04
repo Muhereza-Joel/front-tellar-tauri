@@ -31,7 +31,7 @@ interface SaleWithDetails {
   status: string;
   total_amount: number;
   amount_paid: number;
-  discount_amount: number; // <-- Added to list model
+  discount_amount: number;
   discount_id: string | null;
   created_at: string;
   deleted_at: string | null;
@@ -112,8 +112,8 @@ export function useSalesViewModel() {
           status: sales.status,
           total_amount: sales.total_amount,
           amount_paid: sales.amount_paid,
-          discount_amount: sales.discount_amount, // <-- Selected field
-          discount_id: sales.discount_id, // <-- Selected field
+          discount_amount: sales.discount_amount,
+          discount_id: sales.discount_id,
           created_at: sales.created_at,
           deleted_at: sales.deleted_at,
         })
@@ -394,6 +394,18 @@ export function useSalesViewModel() {
         setErrors({ amount_paid: "Amount paid cannot exceed total amount" });
         return;
       }
+
+      // ============================================================
+      // NEW VALIDATION: If sale is not fully paid, a customer must be attached.
+      // This ensures we can track debt / pending payments.
+      // ============================================================
+      if (amountPaid < totalAmount && !selectedCustomer) {
+        setErrors({
+          customer: "Customer is required for unpaid or partially paid sales",
+        });
+        return;
+      }
+
       if (!db) return;
       const saleUuid = uuidv7();
       const now = new Date().toISOString();
@@ -444,7 +456,6 @@ export function useSalesViewModel() {
     }
   };
 
-  // UPDATED: Added discountAmount parameter to save edits back into the ledger
   const updateSalePayment = async (
     saleUuid: string,
     newAmountPaid: number,
@@ -452,7 +463,6 @@ export function useSalesViewModel() {
   ) => {
     if (!db) throw new Error("Database not initialized");
 
-    // Recalculate dynamic totals securely based on original lines subtotal items
     const originalItems = await db
       .select({ subtotal: saleItems.subtotal })
       .from(saleItems)
@@ -489,8 +499,8 @@ export function useSalesViewModel() {
         status: sales.status,
         total_amount: sales.total_amount,
         amount_paid: sales.amount_paid,
-        discount_amount: sales.discount_amount, // <-- Selected field
-        discount_id: sales.discount_id, // <-- Selected field
+        discount_amount: sales.discount_amount,
+        discount_id: sales.discount_id,
         created_at: sales.created_at,
       })
       .from(sales)

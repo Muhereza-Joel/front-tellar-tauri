@@ -139,6 +139,14 @@ export default function NewSalePage() {
                     }}
                     placeholder="Walk-in Customer"
                   />
+                  {/* ============================================================ */}
+                  {/* NEW: Display customer error when unpaid sale has no customer */}
+                  {/* ============================================================ */}
+                  {vm.errors.customer && (
+                    <p className="text-rose-500 text-[11px] font-bold mt-1">
+                      {vm.errors.customer}
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>

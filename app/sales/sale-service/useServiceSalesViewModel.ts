@@ -9,7 +9,7 @@ import {
 import { services } from "../../../db/schemas/services";
 import { serviceVariants } from "../../../db/schemas/service_variants";
 import { customers } from "../../../db/schemas/customer";
-import { discounts, Discount } from "../../../db/schemas/discounts"; // <-- Import discounts schema
+import { discounts, Discount } from "../../../db/schemas/discounts";
 import { eq, isNull, desc, and, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import * as yup from "yup";
@@ -36,7 +36,7 @@ interface ServiceSaleWithDetails {
   status: "COMPLETED" | "PENDING" | "CANCELLED";
   total_amount: number;
   amount_paid: number;
-  discount_amount: number; // <-- Added discount layout tracking field
+  discount_amount: number;
   discount_id: string | null;
   created_at: string;
   deleted_at: string | null;
@@ -70,7 +70,7 @@ export function useServiceSalesViewModel() {
   const [customersList, setCustomersList] = useState<any[]>([]);
   const [servicesList, setServicesList] = useState<any[]>([]);
   const [variantsList, setVariantsList] = useState<any[]>([]);
-  const [discountsList, setDiscountsList] = useState<Discount[]>([]); // <-- Discounts Registry State
+  const [discountsList, setDiscountsList] = useState<Discount[]>([]);
 
   // Search, Filters & Pagination Ledger Parameters
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -109,7 +109,7 @@ export function useServiceSalesViewModel() {
     if (db) {
       loadSalesHistory();
       loadDependencies();
-      loadDiscounts(); // <-- Run discounts loader context
+      loadDiscounts();
     }
   }, [db]);
 
@@ -170,8 +170,8 @@ export function useServiceSalesViewModel() {
           status: serviceSales.status,
           total_amount: serviceSales.total_amount,
           amount_paid: serviceSales.amount_paid,
-          discount_amount: serviceSales.discount_amount, // <-- Select field context
-          discount_id: serviceSales.discount_id, // <-- Select field context
+          discount_amount: serviceSales.discount_amount,
+          discount_id: serviceSales.discount_id,
           created_at: serviceSales.created_at,
           deleted_at: serviceSales.deleted_at,
         })
@@ -434,6 +434,18 @@ export function useServiceSalesViewModel() {
         return;
       }
 
+      // ============================================================
+      // NEW VALIDATION: If sale is not fully paid, a customer must be attached.
+      // This ensures we can track debt / pending payments for service orders.
+      // ============================================================
+      if (amountPaid < totalAmount && !selectedCustomer) {
+        setErrors({
+          customer:
+            "Customer is required for unpaid or partially paid service sales",
+        });
+        return;
+      }
+
       if (!db) return;
 
       const saleUuid = uuidv7();
@@ -494,7 +506,7 @@ export function useServiceSalesViewModel() {
   const updateHistoricPayment = async (
     saleUuid: string,
     newAmountPaid: number,
-    newDiscountAmount: number = 0, // <-- Extend ledger parameters
+    newDiscountAmount: number = 0,
   ) => {
     if (!db) throw new Error("Database context missing");
 
@@ -538,8 +550,8 @@ export function useServiceSalesViewModel() {
         status: serviceSales.status,
         total_amount: serviceSales.total_amount,
         amount_paid: serviceSales.amount_paid,
-        discount_amount: serviceSales.discount_amount, // <-- Select fields
-        discount_id: serviceSales.discount_id, // <-- Select fields
+        discount_amount: serviceSales.discount_amount,
+        discount_id: serviceSales.discount_id,
         created_at: serviceSales.created_at,
       })
       .from(serviceSales)
@@ -597,8 +609,8 @@ export function useServiceSalesViewModel() {
     setSaleStatus,
     amountPaidRaw,
     setAmountPaidRaw,
-    subtotalAmount, // <-- Expose subtotal
-    discountAmount, // <-- Expose calculated discount markdown
+    subtotalAmount,
+    discountAmount,
     totalAmount,
     errors,
     serviceOptions,
@@ -631,10 +643,10 @@ export function useServiceSalesViewModel() {
     refreshHistory,
     getSaleDetails,
     updateHistoricPayment,
-    discountsList, // Extends active discount rules array
-    isDiscountEnabled, // Workspace checkbox conditional value
+    discountsList,
+    isDiscountEnabled,
     setIsDiscountEnabled,
-    selectedDiscountUuid, // Configured layout ID string
+    selectedDiscountUuid,
     setSelectedDiscountUuid,
   };
 }

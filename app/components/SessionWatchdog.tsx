@@ -3,8 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 
-// 2 hours in milliseconds (2 * 60 * 60 * 1000)
-const INACTIVITY_TIMEOUT = 7200000;
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 export function SessionWatchdog({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -23,9 +22,9 @@ export function SessionWatchdog({ children }: { children: React.ReactNode }) {
         clearTimeout(timeoutRef.current);
       }
 
-      // Set a new timeout to log the user out after 2 hours
+      // Set a new timeout to log the user out after 30 minutes
       timeoutRef.current = setTimeout(() => {
-        console.log("Watchdog: User inactive for 2 hours. Logging out...");
+        console.log("Watchdog: User inactive for 30 minutes. Logging out...");
         logout();
       }, INACTIVITY_TIMEOUT);
     };

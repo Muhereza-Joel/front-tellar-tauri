@@ -98,7 +98,7 @@ export default function Home() {
       id: "debtors",
       title: "Debtors",
       icon: <Users size={20} />,
-      href: "/sales/expenses",
+      href: "/debtors",
       permission: "expenses_module",
       desc: "See customers you demand",
     },

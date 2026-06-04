@@ -275,7 +275,7 @@ export function DateRangePresetFilter({
           ${hasActiveFilters ? "border-blue-500 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/10" : "border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"}`}
       >
         <Calendar size={14} />
-        <span>Date Filter Engine</span>
+        <span>Filter Data</span>
         <ChevronDown
           size={14}
           className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}

@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Eye, X } from "lucide-react";
+import {
+  Search,
+  Eye,
+  X,
+  DollarSign,
+  CreditCard,
+  AlertCircle,
+  FileText,
+} from "lucide-react";
 import { useServiceSalesViewModel } from "../sale-service/useServiceSalesViewModel";
 import { Tabs } from "../../components/Tabs";
 import { TableRowSkeleton } from "../../components/Skeletons";
@@ -293,23 +301,52 @@ export default function ServicesSalesManagementPage() {
     { id: "PENDING", label: "Pending Balances" },
   ];
 
-  return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black px-2">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* VIEW: HISTORIC AUDIT STATEMENT LOGS */}
-        <div className="space-y-4">
-          {/* Filter Ledger Control Bar */}
-          {activeDateIndicator && (
-            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-blue-700 dark:text-blue-400 px-4 py-2 text-xs font-bold flex items-center gap-2 ">
-              <span className="w-1.5 h-1.5 bg-blue-500 animate-pulse" />
-              Active Ledger Filters Scope:{" "}
-              <span className="underline font-black decoration-dotted">
-                {activeDateIndicator}
-              </span>
-            </div>
-          )}
+  // Dynamically calculate cumulative stats across the filtered database subset
+  const aggregateMetrics = React.useMemo(() => {
+    let grandTotalBill = 0;
+    let actualAmountPaid = 0;
+    let totalOutstandingBalance = 0;
 
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+    vm.salesHistoryList.forEach((sale) => {
+      if (sale.status !== "CANCELLED") {
+        const total = Number(sale.total_amount) || 0;
+        const paid = Number(sale.amount_paid) || 0;
+
+        grandTotalBill += total;
+        actualAmountPaid += paid;
+
+        const balance = total - paid;
+        if (balance > 0) {
+          totalOutstandingBalance += balance;
+        }
+      }
+    });
+
+    return {
+      grandTotalBill,
+      actualAmountPaid,
+      totalOutstandingBalance,
+    };
+  }, [vm.salesHistoryList]);
+
+  return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-black px-2 py-4">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* VIEW: HISTORIC AUDIT STATEMENT LOGS */}
+        {activeDateIndicator && (
+          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-blue-700 dark:text-blue-400 px-4 py-2 text-xs font-bold flex items-center gap-2 ">
+            <span className="w-1.5 h-1.5 bg-blue-500 animate-pulse" />
+            Active Ledger Filters Scope:{" "}
+            <span className="underline font-black decoration-dotted">
+              {activeDateIndicator}
+            </span>
+          </div>
+        )}
+
+        {/* 2-Column Responsive Layout wrapping Service Ledger and Summary Panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
+          {/* Main Table Ledger Workspace */}
+          <div className="lg:col-span-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden order-2 lg:order-1">
             <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 flex flex-col sm:flex-row items-center gap-4">
               <div className="relative flex-1 w-full">
                 <Search
@@ -443,6 +480,65 @@ export default function ServicesSalesManagementPage() {
                 onPageChange={vm.setCurrentPage}
                 onPageSizeChange={vm.setPageSize}
               />
+            </div>
+          </div>
+
+          {/* Right-Side Service Dashboard Financial Summary Panel */}
+          <div className="lg:col-span-1 space-y-4 order-1 lg:order-2">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-5 sticky top-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 mb-4 flex items-center gap-2">
+                <FileText size={14} className="text-blue-500" /> Filtered
+                Summary
+              </h3>
+
+              <div className="space-y-4">
+                {/* Total Invoice Value Metric */}
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2 text-zinc-400 mb-1">
+                    <DollarSign size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">
+                      Overall Grand Total
+                    </span>
+                  </div>
+                  <p className="text-lg font-black tracking-tight dark:text-white font-mono">
+                    {formatUGX(aggregateMetrics.grandTotalBill)}
+                  </p>
+                </div>
+
+                {/* Amount Settled Metric */}
+                <div className="p-3 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/20">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1">
+                    <CreditCard size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">
+                      Total Amount Paid
+                    </span>
+                  </div>
+                  <p className="text-lg font-black tracking-tight text-emerald-700 dark:text-emerald-400 font-mono">
+                    {formatUGX(aggregateMetrics.actualAmountPaid)}
+                  </p>
+                </div>
+
+                {/* Arrears Balance Metric */}
+                <div className="p-3 bg-rose-50/40 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-900/20">
+                  <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 mb-1">
+                    <AlertCircle size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">
+                      Total Unpaid Balance
+                    </span>
+                  </div>
+                  <p className="text-lg font-black tracking-tight text-rose-600 dark:text-rose-400 font-mono">
+                    {formatUGX(aggregateMetrics.totalOutstandingBalance)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Counter details footer indicator */}
+              <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-zinc-400 font-medium flex justify-between">
+                <span>Active Row Size:</span>
+                <span className="font-bold text-zinc-700 dark:text-zinc-200">
+                  {vm.totalCount} Logged entries
+                </span>
+              </div>
             </div>
           </div>
         </div>

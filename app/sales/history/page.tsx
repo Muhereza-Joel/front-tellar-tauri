@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Eye, X, Percent } from "lucide-react";
+import {
+  Search,
+  Eye,
+  X,
+  Percent,
+  DollarSign,
+  CreditCard,
+  AlertCircle,
+  FileText,
+} from "lucide-react";
 import { Tabs } from "../../components/Tabs";
 import { TableRowSkeleton } from "../../components/Skeletons";
 import { Pagination } from "../../components/Pagination";
@@ -296,6 +305,30 @@ export default function SalesHistoryPage() {
     { id: "CANCELLED", label: "Cancelled" },
   ];
 
+  // Dynamically calculate metrics based on currently loaded sales dataset
+  const aggregateMetrics = React.useMemo(() => {
+    let grandTotalBill = 0;
+    let actualAmountPaid = 0;
+    let totalOutstandingBalance = 0;
+
+    vm.salesList.forEach((sale) => {
+      if (sale.status !== "CANCELLED") {
+        grandTotalBill += sale.total_amount;
+        actualAmountPaid += sale.amount_paid;
+        const balance = sale.total_amount - sale.amount_paid;
+        if (balance > 0) {
+          totalOutstandingBalance += balance;
+        }
+      }
+    });
+
+    return {
+      grandTotalBill,
+      actualAmountPaid,
+      totalOutstandingBalance,
+    };
+  }, [vm.salesList]);
+
   const handleViewDetails = (uuid: string) => {
     setSelectedSaleUuid(uuid);
     setIsDialogOpen(true);
@@ -310,7 +343,7 @@ export default function SalesHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-black px-2">
+    <div className="min-h-screen bg-slate-100 dark:bg-black px-2 py-4">
       <div className="max-w-7xl mx-auto space-y-4">
         {activeIndicator && (
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-blue-700 dark:text-blue-400 px-4 py-2 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
@@ -322,132 +355,195 @@ export default function SalesHistoryPage() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 flex flex-col sm:flex-row items-center gap-4">
-            <div className="relative flex-1 w-full">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Search ledger by client, products, or metadata summary..."
-                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 dark:text-white transition-all"
-                value={vm.searchTerm}
-                onChange={(e) => vm.setSearchTerm(e.target.value)}
+        {/* 2-Column Responsive Layout wrapping Ledger Table and Summary Panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
+          {/* Main Ledger Section */}
+          <div className="lg:col-span-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden order-2 lg:order-1">
+            <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative flex-1 w-full">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="Search ledger by client, products, or metadata summary..."
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 dark:text-white transition-all"
+                  value={vm.searchTerm}
+                  onChange={(e) => vm.setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div className="w-full sm:w-auto flex justify-end">
+                <DateRangePresetFilter
+                  onFilterChange={handleDateFilterEngineChange}
+                  onIndicatorChange={setActiveIndicator}
+                />
+              </div>
+            </div>
+
+            <div className="px-5 pt-2 border-b border-zinc-50 dark:border-zinc-800">
+              <Tabs
+                tabs={statusTabs}
+                activeTab={vm.statusFilter}
+                onChange={vm.setStatusFilter}
+                variant="underlined"
               />
             </div>
 
-            <div className="w-full sm:w-auto flex justify-end">
-              <DateRangePresetFilter
-                onFilterChange={handleDateFilterEngineChange}
-                onIndicatorChange={setActiveIndicator}
-              />
-            </div>
-          </div>
-
-          <div className="px-5 pt-2 border-b border-zinc-50 dark:border-zinc-800">
-            <Tabs
-              tabs={statusTabs}
-              activeTab={vm.statusFilter}
-              onChange={vm.setStatusFilter}
-              variant="underlined"
-            />
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-zinc-50/50 dark:bg-black text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Summary</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 text-right">Discount</th>
-                  <th className="px-6 py-4 text-right">Total</th>
-                  <th className="px-6 py-4 text-right">Balance</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:bg-black dark:text-zinc-300">
-                {vm.loading ? (
-                  <TableRowSkeleton />
-                ) : vm.salesList.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-zinc-50/50 dark:bg-black text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                   <tr>
-                    <td
-                      colSpan={8}
-                      className="px-6 py-12 text-center text-zinc-400 text-xs italic"
-                    >
-                      No matching transaction ledger logs identified for current
-                      parameters
-                    </td>
+                    <th className="px-6 py-4">Customer</th>
+                    <th className="px-6 py-4">Summary</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4 text-right">Discount</th>
+                    <th className="px-6 py-4 text-right">Total</th>
+                    <th className="px-6 py-4 text-right">Balance</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Action</th>
                   </tr>
-                ) : (
-                  vm.salesList.map((sale) => {
-                    const hasBalance = sale.total_amount - sale.amount_paid > 0;
-                    return (
-                      <tr
-                        key={sale.uuid}
-                        className={`transition-colors group ${
-                          hasBalance
-                            ? "bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:border-zinc-700"
-                            : "hover:bg-zinc-50 dark:hover:bg-zinc-950/50 dark:border-zinc-700"
-                        }`}
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:bg-black dark:text-zinc-300">
+                  {vm.loading ? (
+                    <TableRowSkeleton />
+                  ) : vm.salesList.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-6 py-12 text-center text-zinc-400 text-xs italic"
                       >
-                        <td className="px-6 py-4 font-bold text-sm">
-                          {sale.customer_name || "Walk-in Customer"}
-                        </td>
-                        <td
-                          className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[220px]"
-                          title={sale.items_summary}
+                        No matching transaction ledger logs identified for
+                        current parameters
+                      </td>
+                    </tr>
+                  ) : (
+                    vm.salesList.map((sale) => {
+                      const hasBalance =
+                        sale.total_amount - sale.amount_paid > 0;
+                      return (
+                        <tr
+                          key={sale.uuid}
+                          className={`transition-colors group ${
+                            hasBalance
+                              ? "bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 dark:border-zinc-700"
+                              : "hover:bg-zinc-50 dark:hover:bg-zinc-950/50 dark:border-zinc-700"
+                          }`}
                         >
-                          {sale.items_summary}
-                        </td>
-                        <td className="px-6 py-4 text-xs text-zinc-400">
-                          {new Date(sale.created_at).toLocaleDateString()}
-                        </td>
-                        {/* New layout column row displaying the record value */}
-                        <td className="px-6 py-4 text-right font-mono font-bold text-xs text-rose-500">
-                          {sale.discount_amount > 0
-                            ? formatUGX(sale.discount_amount)
-                            : "-"}
-                        </td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-xs">
-                          {formatUGX(sale.total_amount)}
-                        </td>
-                        <td className="px-6 py-4 text-right font-mono text-xs text-rose-500 font-bold">
-                          {hasBalance
-                            ? formatUGX(sale.total_amount - sale.amount_paid)
-                            : "-"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge status={sale.status} />
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleViewDetails(sale.uuid)}
-                            className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 p-2 rounded-lg transition-all"
+                          <td className="px-6 py-4 font-bold text-sm">
+                            {sale.customer_name || "Walk-in Customer"}
+                          </td>
+                          <td
+                            className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[220px]"
+                            title={sale.items_summary}
                           >
-                            <Eye size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                            {sale.items_summary}
+                          </td>
+                          <td className="px-6 py-4 text-xs text-zinc-400">
+                            {new Date(sale.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-right font-mono font-bold text-xs text-rose-500">
+                            {sale.discount_amount > 0
+                              ? formatUGX(sale.discount_amount)
+                              : "-"}
+                          </td>
+                          <td className="px-6 py-4 text-right font-mono font-bold text-xs">
+                            {formatUGX(sale.total_amount)}
+                          </td>
+                          <td className="px-6 py-4 text-right font-mono text-xs text-rose-500 font-bold">
+                            {hasBalance
+                              ? formatUGX(sale.total_amount - sale.amount_paid)
+                              : "-"}
+                          </td>
+                          <td className="px-6 py-4">
+                            <StatusBadge status={sale.status} />
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleViewDetails(sale.uuid)}
+                              className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 p-2 rounded-lg transition-all"
+                            >
+                              <Eye size={16} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-950/20">
+              <Pagination
+                currentPage={vm.currentPage}
+                totalPages={vm.totalPages}
+                pageSize={vm.pageSize}
+                totalCount={vm.totalCount}
+                onPageChange={vm.setCurrentPage}
+                onPageSizeChange={vm.setPageSize}
+              />
+            </div>
           </div>
 
-          <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-950/20">
-            <Pagination
-              currentPage={vm.currentPage}
-              totalPages={vm.totalPages}
-              pageSize={vm.pageSize}
-              totalCount={vm.totalCount}
-              onPageChange={vm.setCurrentPage}
-              onPageSizeChange={vm.setPageSize}
-            />
+          {/* Right-Side Dashboard Financial Summary Panel */}
+          <div className="lg:col-span-1 space-y-4 order-1 lg:order-2">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm p-5 sticky top-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 mb-4 flex items-center gap-2">
+                <FileText size={14} className="text-blue-500" />
+                Summary View.
+              </h3>
+
+              <div className="space-y-4">
+                {/* Total Invoice Value Metric */}
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-2 text-zinc-400 mb-1">
+                    <DollarSign size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">
+                      Overall Grand Total
+                    </span>
+                  </div>
+                  <p className="text-lg font-black tracking-tight dark:text-white font-mono">
+                    {formatUGX(aggregateMetrics.grandTotalBill)}
+                  </p>
+                </div>
+
+                {/* Amount Settled Metric */}
+                <div className="p-3 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/20">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1">
+                    <CreditCard size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">
+                      Total Amount Paid
+                    </span>
+                  </div>
+                  <p className="text-lg font-black tracking-tight text-emerald-700 dark:text-emerald-400 font-mono">
+                    {formatUGX(aggregateMetrics.actualAmountPaid)}
+                  </p>
+                </div>
+
+                {/* Arrears Balance Metric */}
+                <div className="p-3 bg-rose-50/40 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-900/20">
+                  <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 mb-1">
+                    <AlertCircle size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">
+                      Total Unpaid Balance
+                    </span>
+                  </div>
+                  <p className="text-lg font-black tracking-tight text-rose-600 dark:text-rose-400 font-mono">
+                    {formatUGX(aggregateMetrics.totalOutstandingBalance)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Counter details footer indicator */}
+              <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-zinc-400 font-medium flex justify-between">
+                <span>Active Row Size:</span>
+                <span className="font-bold text-zinc-700 dark:text-zinc-200">
+                  {vm.totalCount} Logged entries
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Eye, X, Percent, AlertCircle } from "lucide-react";
+import { Search, Eye, X, AlertCircle } from "lucide-react";
 import { TableRowSkeleton } from "../components/Skeletons";
 import { Pagination } from "../components/Pagination";
-import { useDebtorsViewModel } from "./useDebtorsViewModel";
+import { useDebtorsViewModel, CustomerDebtGroup } from "./useDebtorsViewModel";
 import { DateRangePresetFilter } from "../components/DateRangePresetFilter";
 
 const formatUGX = (amount: number) => {
@@ -24,99 +24,77 @@ const ArrearsBadge = ({ balance }: { balance: number }) => {
   );
 };
 
-function DebtCollectionDialog({
-  saleUuid,
+// ------------------------------------------------------------------
+// NEW: Multi‑sale collection dialog for a customer
+// ------------------------------------------------------------------
+function CustomerCollectionDialog({
+  customerId,
+  customerName,
   isOpen,
   onClose,
   onPaymentUpdated,
 }: {
-  saleUuid: string | null;
+  customerId: string | null;
+  customerName: string;
   isOpen: boolean;
   onClose: () => void;
   onPaymentUpdated: () => void;
 }) {
-  const { getSaleDetails, updateSalePayment } = useDebtorsViewModel();
-  const [sale, setSale] = useState<any>(null);
-  const [items, setItems] = useState<any[]>([]);
-  const [amountPaid, setAmountPaid] = useState<string>("");
-  const [discountAmount, setDiscountAmount] = useState<string>("");
+  const { getUnpaidSalesForCustomer, updateSalePayment } =
+    useDebtorsViewModel();
+  const [unpaidSales, setUnpaidSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [updatingUuid, setUpdatingUuid] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const fetchDetails = async () => {
-    if (!saleUuid) return;
+  const fetchUnpaidSales = async () => {
+    if (!isOpen) return;
     setLoading(true);
     try {
-      const { sale: saleData, items: saleItems } =
-        await getSaleDetails(saleUuid);
-      setSale(saleData);
-      setItems(saleItems);
-      setAmountPaid(String(saleData.amount_paid));
-      setDiscountAmount(String(saleData.discount_amount || 0));
+      const sales = await getUnpaidSalesForCustomer(customerId);
+      setUnpaidSales(sales);
       setError("");
     } catch (err) {
-      setError("Failed to load debt ledger transaction parameters");
+      setError("Failed to load customer debt details");
     } finally {
       setLoading(false);
     }
   };
 
   React.useEffect(() => {
-    if (isOpen && saleUuid) fetchDetails();
-  }, [isOpen, saleUuid]);
+    if (isOpen) fetchUnpaidSales();
+  }, [isOpen, customerId]);
 
-  const handleUpdatePayment = async () => {
-    if (!saleUuid) return;
-    const newAmount = parseFloat(amountPaid);
-    const newDiscount = parseFloat(discountAmount);
-    const derivedSubtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
-
-    if (
-      isNaN(newDiscount) ||
-      newDiscount < 0 ||
-      newDiscount > derivedSubtotal
-    ) {
-      setError("Discount cannot be negative or exceed order subtotal amount");
-      return;
-    }
-
-    const targetTotalBill = Math.max(0, derivedSubtotal - newDiscount);
-
-    if (isNaN(newAmount) || newAmount < 0 || newAmount > targetTotalBill) {
-      setError(
-        "Please check the payment amount entered. It cannot exceed total bill",
-      );
-      return;
-    }
-
+  const handleUpdatePayment = async (
+    saleUuid: string,
+    newAmountPaid: number,
+    newDiscount: number,
+  ) => {
+    setUpdatingUuid(saleUuid);
     try {
-      await updateSalePayment(saleUuid, newAmount, newDiscount);
-      onPaymentUpdated();
-      onClose();
+      await updateSalePayment(saleUuid, newAmountPaid, newDiscount);
+      await fetchUnpaidSales(); // refresh list after update
+      onPaymentUpdated(); // refresh main table
     } catch (err) {
-      setError("Failed to update payment tracking entry");
+      setError("Payment update failed");
+    } finally {
+      setUpdatingUuid(null);
     }
   };
 
   if (!isOpen) return null;
 
-  const derivedSubtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
-  const parsedDiscount = parseFloat(discountAmount) || 0;
-  const dynamicallyCalculatedTotal = Math.max(
+  const totalDue = unpaidSales.reduce(
+    (sum, s) => sum + (s.total_amount - s.amount_paid),
     0,
-    derivedSubtotal - parsedDiscount,
-  );
-  const ongoingDebtBalance = Math.max(
-    0,
-    dynamicallyCalculatedTotal - (parseFloat(amountPaid) || 0),
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-900 shadow-2xl w-full max-w-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-zinc-900 shadow-2xl w-full max-w-4xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center p-4 border-b border-zinc-100 dark:border-zinc-800">
           <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2 text-rose-600 dark:text-rose-400">
-            <AlertCircle size={18} /> Debt Collection & Clearance Settlement
+            <AlertCircle size={18} /> Debt Collection – {customerName}
           </h2>
           <button
             onClick={onClose}
@@ -130,133 +108,87 @@ function DebtCollectionDialog({
           {error && <p className="text-xs text-rose-500 font-bold">{error}</p>}
           {loading ? (
             <div className="text-center py-10 text-zinc-500 italic">
-              Retrieving file dossiers...
+              Loading outstanding invoices...
             </div>
-          ) : sale ? (
+          ) : unpaidSales.length === 0 ? (
+            <div className="text-center py-10 text-emerald-600 font-bold">
+              No pending debts for this customer.
+            </div>
+          ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-zinc-50 dark:bg-zinc-800/50 p-4 border border-zinc-100 dark:border-zinc-800">
-                <DetailItem label="Ref Invoice" value={sale.uuid.slice(0, 8)} />
-                <DetailItem
-                  label="Issue Date"
-                  value={new Date(sale.created_at).toLocaleDateString()}
-                />
-                <DetailItem
-                  label="Debtor Client"
-                  value={sale.customer_name || "Walk-in Account"}
-                />
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase mb-1 block">
-                    Current Standing
-                  </span>
-                  <ArrearsBadge
-                    balance={sale.total_amount - sale.amount_paid}
-                  />
-                </div>
+              <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                <span className="text-xs font-bold uppercase text-zinc-500">
+                  Total Outstanding
+                </span>
+                <span className="text-2xl font-black text-rose-600">
+                  {formatUGX(totalDue)}
+                </span>
               </div>
 
-              <div className="border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 text-[10px] font-black uppercase">
-                    <tr>
-                      <th className="px-4 py-2 text-left">
-                        Product Detail Summary
-                      </th>
-                      <th className="px-4 py-2 text-right">Qty</th>
-                      <th className="px-4 py-2 text-right">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:text-zinc-200">
-                    {items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-3">
-                          <p className="font-bold">{item.product_name}</p>
-                          <p className="text-[10px] text-zinc-400">
-                            {item.variant_label}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono">
-                          {formatUGX(item.subtotal)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {unpaidSales.map((sale) => {
+                const balance = sale.total_amount - sale.amount_paid;
+                return (
+                  <div
+                    key={sale.uuid}
+                    className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-3"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-xs text-zinc-400">
+                          Invoice #{sale.uuid.slice(0, 8)}
+                        </p>
+                        <p className="text-sm font-bold mt-1">
+                          {new Date(sale.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <ArrearsBadge balance={balance} />
+                    </div>
 
-              <div className="bg-zinc-100 dark:bg-zinc-950 p-5 space-y-4">
-                <div className="flex justify-between items-center text-xs font-bold text-zinc-500 uppercase">
-                  <span>Gross Valuation Valuation</span>
-                  <span>{formatUGX(derivedSubtotal)}</span>
-                </div>
+                    <div className="text-sm text-zinc-600 dark:text-zinc-300">
+                      {sale.items_summary}
+                    </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                  <span className="text-xs font-black uppercase text-zinc-600 dark:text-zinc-400">
-                    Adjusted Total Bill
-                  </span>
-                  <span className="text-xl font-black dark:text-white">
-                    {formatUGX(dynamicallyCalculatedTotal)}
-                  </span>
-                </div>
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-dashed border-zinc-200 dark:border-zinc-800">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-zinc-400">
+                          Total Bill
+                        </label>
+                        <p className="font-mono font-bold">
+                          {formatUGX(sale.total_amount)}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-zinc-400">
+                          Already Paid
+                        </label>
+                        <p className="font-mono">
+                          {formatUGX(sale.amount_paid)}
+                        </p>
+                      </div>
+                    </div>
 
-                <hr className="border-dashed border-zinc-200 dark:border-zinc-800 my-2" />
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase text-zinc-400 flex items-center gap-1">
-                      <Percent size={12} className="text-zinc-500" /> Adjust
-                      Discount
-                    </label>
-                    <input
-                      type="number"
-                      value={discountAmount}
-                      onChange={(e) => setDiscountAmount(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm mt-1 dark:text-white font-medium outline-none focus:border-rose-500"
+                    {/* Inline payment updater for this sale */}
+                    <SalePaymentUpdater
+                      saleUuid={sale.uuid}
+                      currentPaid={sale.amount_paid}
+                      currentDiscount={sale.discount_amount}
+                      total={sale.total_amount}
+                      isUpdating={updatingUuid === sale.uuid}
+                      onUpdate={handleUpdatePayment}
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase text-zinc-400">
-                      Collected Realized Amount
-                    </label>
-                    <input
-                      type="number"
-                      value={amountPaid}
-                      onChange={(e) => setAmountPaid(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm mt-1 dark:text-white font-medium outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                  <div className="text-right flex flex-col justify-end">
-                    <label className="text-[10px] font-bold uppercase text-zinc-400">
-                      Remaining Deficit Balance
-                    </label>
-                    <p
-                      className={`text-lg font-black mt-1 ${ongoingDebtBalance > 0 ? "text-rose-500" : "text-emerald-500"}`}
-                    >
-                      {ongoingDebtBalance > 0
-                        ? formatUGX(ongoingDebtBalance)
-                        : "FULLY SETTLED"}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
             </>
-          ) : null}
+          )}
         </div>
 
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-bold uppercase dark:text-zinc-400"
           >
-            Close Panel
-          </button>
-          <button
-            onClick={handleUpdatePayment}
-            className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 text-xs font-bold uppercase transition-all shadow-lg shadow-rose-600/20"
-          >
-            Post Payments
+            Close
           </button>
         </div>
       </div>
@@ -264,48 +196,111 @@ function DebtCollectionDialog({
   );
 }
 
-const DetailItem = ({ label, value }: { label: string; value: string }) => (
-  <div>
-    <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">
-      {label}
-    </span>
-    <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
-      {value}
-    </span>
-  </div>
-);
+// Helper component for inline payment editing per sale
+function SalePaymentUpdater({
+  saleUuid,
+  currentPaid,
+  currentDiscount,
+  total,
+  isUpdating,
+  onUpdate,
+}: {
+  saleUuid: string;
+  currentPaid: number;
+  currentDiscount: number;
+  total: number;
+  isUpdating: boolean;
+  onUpdate: (uuid: string, newPaid: number, newDiscount: number) => void;
+}) {
+  const [amountPaid, setAmountPaid] = useState(String(currentPaid));
+  const [discountAmount, setDiscountAmount] = useState(String(currentDiscount));
+  const [error, setError] = useState("");
 
-export default function DebtorsPage() {
-  const vm = useDebtorsViewModel();
-  const [selectedSaleUuid, setSelectedSaleUuid] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [activeIndicator, setActiveIndicator] = useState<string | null>(null);
-
-  const handleViewDetails = (uuid: string) => {
-    setSelectedSaleUuid(uuid);
-    setIsDialogOpen(true);
+  const handleSubmit = () => {
+    const newPaid = parseFloat(amountPaid);
+    const newDiscount = parseFloat(discountAmount);
+    const derivedSubtotal = total + currentDiscount; // original subtotal before discount
+    if (
+      isNaN(newDiscount) ||
+      newDiscount < 0 ||
+      newDiscount > derivedSubtotal
+    ) {
+      setError("Invalid discount amount");
+      return;
+    }
+    const newTotal = Math.max(0, derivedSubtotal - newDiscount);
+    if (isNaN(newPaid) || newPaid < 0 || newPaid > newTotal) {
+      setError("Payment amount exceeds total bill");
+      return;
+    }
+    setError("");
+    onUpdate(saleUuid, newPaid, newDiscount);
   };
 
-  const handleDateFilterEngineChange = (dates: {
-    from: string;
-    until: string;
-  }) => {
-    vm.setDateFrom(dates.from);
-    vm.setDateTo(dates.until);
+  return (
+    <div className="pt-2 space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className="text-[10px] font-bold uppercase text-zinc-400">
+            Discount
+          </label>
+          <input
+            type="number"
+            value={discountAmount}
+            onChange={(e) => setDiscountAmount(e.target.value)}
+            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase text-zinc-400">
+            Payment Received
+          </label>
+          <input
+            type="number"
+            value={amountPaid}
+            onChange={(e) => setAmountPaid(e.target.value)}
+            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex items-end">
+          <button
+            onClick={handleSubmit}
+            disabled={isUpdating}
+            className="bg-rose-600 hover:bg-rose-700 disabled:bg-zinc-400 text-white px-4 py-2 text-xs font-bold uppercase w-full"
+          >
+            {isUpdating ? "Updating..." : "Apply"}
+          </button>
+        </div>
+      </div>
+      {error && <p className="text-rose-500 text-[11px]">{error}</p>}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------
+// Main Page Component (grouped by customer)
+// ------------------------------------------------------------------
+export default function DebtorsPage() {
+  const vm = useDebtorsViewModel();
+  const [selectedCustomer, setSelectedCustomer] = useState<{
+    id: string | null;
+    name: string;
+  } | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleCollect = (group: CustomerDebtGroup) => {
+    setSelectedCustomer({
+      id: group.customer_id,
+      name: group.customer_name,
+    });
+    setIsDialogOpen(true);
   };
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-black px-2">
       <div className="max-w-7xl mx-auto space-y-4">
-        {activeIndicator && (
-          <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40 text-rose-700 dark:text-rose-400 px-4 py-2 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
-            <span className="w-1.5 h-1.5 bg-rose-500 animate-pulse" />
-            Active Collection Windows:{" "}
-            <span className="underline font-black">{activeIndicator}</span>
-          </div>
-        )}
-
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+          {/* Filter bar */}
           <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 flex flex-col sm:flex-row items-center gap-4">
             <div className="relative flex-1 w-full">
               <Search
@@ -314,90 +309,74 @@ export default function DebtorsPage() {
               />
               <input
                 type="text"
-                placeholder="Search outstanding debtors, client names, or descriptions..."
-                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm outline-none focus:ring-2 focus:ring-rose-500/20 dark:text-white transition-all"
+                placeholder="Search customers or items..."
+                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm outline-none focus:ring-2 focus:ring-rose-500/20"
                 value={vm.searchTerm}
                 onChange={(e) => vm.setSearchTerm(e.target.value)}
               />
             </div>
-
-            <div className="w-full sm:w-auto flex justify-end">
+            <div className="w-full sm:w-auto">
               <DateRangePresetFilter
-                onFilterChange={handleDateFilterEngineChange}
-                onIndicatorChange={setActiveIndicator}
+                onFilterChange={(dates) => {
+                  vm.setDateFrom(dates.from);
+                  vm.setDateTo(dates.until);
+                }}
+                onIndicatorChange={() => {}}
               />
             </div>
           </div>
 
+          {/* Grouped Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-zinc-50/50 dark:bg-black text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-4">Client Name</th>
-                  <th className="px-6 py-4">Purchase Items Summary</th>
-                  <th className="px-6 py-4">Created Date</th>
-                  <th className="px-6 py-4 text-right">Discount</th>
-                  <th className="px-6 py-4 text-right">Total Invoiced</th>
-                  <th className="px-6 py-4 text-right">Unpaid Arrears</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Unpaid Invoices</th>
+                  <th className="px-6 py-4 text-right">
+                    Total Amount Demanded
+                  </th>
                   <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:bg-black dark:text-zinc-300">
                 {vm.loading ? (
                   <TableRowSkeleton />
-                ) : vm.debtorsList.length === 0 ? (
+                ) : vm.debtorsGroups.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={4}
                       className="px-6 py-12 text-center text-zinc-400 text-xs italic"
                     >
-                      Clean Sheet: No outstanding customer deficits match the
-                      query criteria.
+                      No outstanding debts match the criteria.
                     </td>
                   </tr>
                 ) : (
-                  vm.debtorsList.map((sale) => {
-                    const balance = sale.total_amount - sale.amount_paid;
-                    return (
-                      <tr
-                        key={sale.uuid}
-                        className="transition-colors bg-rose-50/30 hover:bg-rose-100/50 dark:bg-rose-950/10 dark:hover:bg-rose-900/20"
-                      >
-                        <td className="px-6 py-4 font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                          {sale.customer_name || "Unregistered Account"}
-                        </td>
-                        <td
-                          className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[220px]"
-                          title={sale.items_summary}
+                  vm.debtorsGroups.map((group) => (
+                    <tr
+                      key={group.customer_id}
+                      className="hover:bg-rose-50/30 dark:hover:bg-rose-950/10"
+                    >
+                      <td className="px-6 py-4 font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                        {group.customer_name}
+                      </td>
+                      <td className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400">
+                        {group.sales.length} invoice(s)
+                      </td>
+                      <td className="px-6 py-4 text-right font-mono font-black text-rose-600">
+                        {formatUGX(group.total_due)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleCollect(group)}
+                          className="bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 p-2 rounded-lg transition-all"
+                          title="Collect Payments"
                         >
-                          {sale.items_summary}
-                        </td>
-                        <td className="px-6 py-4 text-xs text-zinc-400">
-                          {new Date(sale.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-right font-mono text-xs text-zinc-400">
-                          {sale.discount_amount > 0
-                            ? formatUGX(sale.discount_amount)
-                            : "-"}
-                        </td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-xs text-zinc-600 dark:text-zinc-400">
-                          {formatUGX(sale.total_amount)}
-                        </td>
-                        <td className="px-6 py-4 text-right font-mono text-xs text-rose-600 font-black">
-                          {formatUGX(balance)}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleViewDetails(sale.uuid)}
-                            className="bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 p-2 rounded-lg transition-all"
-                            title="Collect Payments"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
+                          <Eye size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -415,8 +394,9 @@ export default function DebtorsPage() {
           </div>
         </div>
 
-        <DebtCollectionDialog
-          saleUuid={selectedSaleUuid}
+        <CustomerCollectionDialog
+          customerId={selectedCustomer?.id ?? null}
+          customerName={selectedCustomer?.name ?? ""}
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           onPaymentUpdated={vm.refreshDebtors}

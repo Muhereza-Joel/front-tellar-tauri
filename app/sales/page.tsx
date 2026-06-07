@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   ShoppingCart,
   CreditCard,
@@ -9,6 +10,8 @@ import {
   User,
   Trash2,
   Percent,
+  UserPlus,
+  X,
 } from "lucide-react";
 import { SearchableDropdown } from "@luciodale/react-searchable-dropdown";
 import "@luciodale/react-searchable-dropdown/dist/assets/single-style.css";
@@ -26,10 +29,62 @@ const formatUGX = (amount: number) => {
 export default function NewSalePage() {
   const vm = useSalesViewModel();
 
+  // NEW: Quick customer dialog state
+  const [showQuickCustomerDialog, setShowQuickCustomerDialog] = useState(false);
+  const [quickCustomerData, setQuickCustomerData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
+  const [quickCustomerErrors, setQuickCustomerErrors] = useState<
+    Record<string, string>
+  >({});
+
   const inputClass = (fieldName: string) => `
     w-full bg-white dark:bg-zinc-950 border px-3 py-2 text-sm outline-none transition-all
     ${vm.errors[fieldName] ? "border-rose-500 ring-1 ring-rose-500/20" : "border-zinc-200 dark:border-zinc-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"}
   `;
+
+  // NEW: Handle quick customer creation
+  const handleQuickCustomerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickCustomerErrors({});
+
+    // Simple validation
+    const errors: Record<string, string> = {};
+    if (!quickCustomerData.first_name.trim())
+      errors.first_name = "First name required";
+    if (!quickCustomerData.last_name.trim())
+      errors.last_name = "Last name required";
+    if (Object.keys(errors).length > 0) {
+      setQuickCustomerErrors(errors);
+      return;
+    }
+
+    try {
+      const newCustomer = await vm.createQuickCustomer({
+        first_name: quickCustomerData.first_name.trim(),
+        last_name: quickCustomerData.last_name.trim(),
+        email: quickCustomerData.email.trim() || null,
+        phone: quickCustomerData.phone.trim() || null,
+      });
+      if (newCustomer) {
+        vm.setSelectedCustomer(newCustomer);
+      }
+      // Close dialog and reset form
+      setShowQuickCustomerDialog(false);
+      setQuickCustomerData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+      });
+    } catch (err) {
+      console.error("Failed to create customer", err);
+      setQuickCustomerErrors({ general: "Creation failed. Please try again." });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-black px-2">
@@ -119,9 +174,19 @@ export default function NewSalePage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zinc-500 mb-1 block">
-                    Customer
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold uppercase text-zinc-500">
+                      Customer
+                    </label>
+                    {/* NEW: Quick create button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickCustomerDialog(true)}
+                      className="text-[10px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                    >
+                      <UserPlus size={12} /> Add New Customer
+                    </button>
+                  </div>
                   <SearchableDropdown
                     options={vm.customers.map(
                       (c) => `${c.first_name} ${c.last_name}`,
@@ -139,9 +204,6 @@ export default function NewSalePage() {
                     }}
                     placeholder="Walk-in Customer"
                   />
-                  {/* ============================================================ */}
-                  {/* NEW: Display customer error when unpaid sale has no customer */}
-                  {/* ============================================================ */}
                   {vm.errors.customer && (
                     <p className="text-rose-500 text-[11px] font-bold mt-1">
                       {vm.errors.customer}
@@ -188,7 +250,6 @@ export default function NewSalePage() {
                     </span>
                   </div>
 
-                  {/* Toggle Switch */}
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -203,7 +264,6 @@ export default function NewSalePage() {
                   </label>
                 </div>
 
-                {/* Conditional Discount Picker Dropdown */}
                 {vm.isDiscountEnabled && (
                   <div className="animate-in fade-in duration-200">
                     <label className="text-[10px] font-bold uppercase text-zinc-500 mb-1 block">
@@ -303,7 +363,6 @@ export default function NewSalePage() {
               </div>
 
               <div className="p-6 bg-zinc-50 dark:bg-zinc-950 border-t-2 border-zinc-100 dark:border-zinc-800 space-y-4">
-                {/* Breakdowns */}
                 <div className="flex justify-between text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400">
                   <span>Subtotal</span>
                   <span>{formatUGX(vm.subtotalAmount)}</span>
@@ -366,6 +425,131 @@ export default function NewSalePage() {
           </div>
         </div>
       </div>
+
+      {/* NEW: Quick Customer Creation Modal */}
+      {showQuickCustomerDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 w-full max-w-md p-6 rounded-lg shadow-2xl border border-zinc-200 dark:border-zinc-800">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold dark:text-white flex items-center gap-2">
+                <UserPlus size={18} />
+                Add New Customer
+              </h3>
+              <button
+                onClick={() => {
+                  setShowQuickCustomerDialog(false);
+                  setQuickCustomerErrors({});
+                  setQuickCustomerData({
+                    first_name: "",
+                    last_name: "",
+                    email: "",
+                    phone: "",
+                  });
+                }}
+                className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleQuickCustomerSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold uppercase text-zinc-500 block mb-1">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  value={quickCustomerData.first_name}
+                  onChange={(e) =>
+                    setQuickCustomerData({
+                      ...quickCustomerData,
+                      first_name: e.target.value,
+                    })
+                  }
+                  className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {quickCustomerErrors.first_name && (
+                  <p className="text-rose-500 text-[11px] font-bold mt-1">
+                    {quickCustomerErrors.first_name}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase text-zinc-500 block mb-1">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  value={quickCustomerData.last_name}
+                  onChange={(e) =>
+                    setQuickCustomerData({
+                      ...quickCustomerData,
+                      last_name: e.target.value,
+                    })
+                  }
+                  className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {quickCustomerErrors.last_name && (
+                  <p className="text-rose-500 text-[11px] font-bold mt-1">
+                    {quickCustomerErrors.last_name}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase text-zinc-500 block mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={quickCustomerData.email}
+                  onChange={(e) =>
+                    setQuickCustomerData({
+                      ...quickCustomerData,
+                      email: e.target.value,
+                    })
+                  }
+                  className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase text-zinc-500 block mb-1">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={quickCustomerData.phone}
+                  onChange={(e) =>
+                    setQuickCustomerData({
+                      ...quickCustomerData,
+                      phone: e.target.value,
+                    })
+                  }
+                  className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              {quickCustomerErrors.general && (
+                <p className="text-rose-500 text-[11px] font-bold text-center">
+                  {quickCustomerErrors.general}
+                </p>
+              )}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickCustomerDialog(false)}
+                  className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded shadow"
+                >
+                  Save Customer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

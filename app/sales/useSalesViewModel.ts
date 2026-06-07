@@ -177,6 +177,39 @@ export function useSalesViewModel() {
     setCustomersList(results);
   };
 
+  // NEW: Quick customer creation
+  const createQuickCustomer = async (data: {
+    first_name: string;
+    last_name: string;
+    email?: string | null;
+    phone?: string | null;
+  }) => {
+    if (!db) throw new Error("Database not initialized");
+
+    const newUuid = uuidv7();
+    const now = new Date().toISOString();
+    const tenantId = getTenantId();
+
+    await db.insert(customers).values({
+      uuid: newUuid,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email || null,
+      phone: data.phone || null,
+      tenant_id: tenantId,
+      is_active: true,
+      is_walk_in: false,
+      sync_status: "created",
+      created_at: now,
+      updated_at: now,
+    });
+
+    // Reload customers and return the new one
+    await loadCustomers();
+    const newCustomer = customersList.find((c) => c.uuid === newUuid);
+    return newCustomer;
+  };
+
   const loadDiscounts = async () => {
     if (!db) return;
     const nowStr = new Date().toISOString().split("T")[0];
@@ -395,10 +428,6 @@ export function useSalesViewModel() {
         return;
       }
 
-      // ============================================================
-      // NEW VALIDATION: If sale is not fully paid, a customer must be attached.
-      // This ensures we can track debt / pending payments.
-      // ============================================================
       if (amountPaid < totalAmount && !selectedCustomer) {
         setErrors({
           customer: "Customer is required for unpaid or partially paid sales",
@@ -594,5 +623,6 @@ export function useSalesViewModel() {
     setIsDiscountEnabled,
     selectedDiscountUuid,
     setSelectedDiscountUuid,
+    createQuickCustomer,
   };
 }

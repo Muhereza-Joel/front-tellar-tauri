@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getDatabase } from "../../db";
 import { customers } from "../../db/schemas/customer";
-import { eq } from "drizzle-orm";
+import { eq, and, ne, isNull } from "drizzle-orm";
 import * as yup from "yup";
 import { v7 as uuidv7 } from "uuid";
 import { usePagination } from "../hooks/usePagination";
@@ -12,7 +12,11 @@ import { useAuth } from "../context/AuthContext";
 const customerSchema = yup.object({
   first_name: yup.string().required("First name is required"),
   last_name: yup.string().required("Last name is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
+  email: yup
+    .string()
+    .email("Invalid email")
+    .nullable()
+    .transform((v) => (v === "" ? null : v)),
   phone: yup
     .string()
     .nullable()
@@ -115,6 +119,36 @@ export function useCustomerViewModel() {
       const valid = await customerSchema.validate(formData, {
         abortEarly: false,
       });
+
+      // Email uniqueness check
+      let existingCustomer = null;
+      if (valid.email) {
+        existingCustomer = await db.query.customers.findFirst({
+          where: editingUuid
+            ? and(
+                eq(customers.email, valid.email),
+                ne(customers.uuid, editingUuid),
+                isNull(customers.deleted_at),
+              )
+            : and(
+                eq(customers.email, valid.email),
+                isNull(customers.deleted_at),
+              ),
+        });
+      }
+
+      console.log("Existing customer check:", existingCustomer);
+
+      const customer = existingCustomer?.uuid
+        ? {
+            uuid: existingCustomer.uuid[0],
+          }
+        : null;
+
+      if (customer?.uuid) {
+        setErrors({ email: "This email is already registered." });
+        return;
+      }
 
       if (editingUuid) {
         await db

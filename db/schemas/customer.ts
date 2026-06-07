@@ -7,7 +7,7 @@ export const customers = sqliteTable("customers", {
   first_name: text().notNull(),
   last_name: text().notNull(),
   date_of_birth: text(), // store as text (ISO string) or integer timestamp
-  email: text().notNull().unique(),
+  email: text().unique(),
   phone: text(),
   address: text(),
   city: text(),

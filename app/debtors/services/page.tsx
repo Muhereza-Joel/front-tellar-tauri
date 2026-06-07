@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Eye, X, AlertTriangle, Percent } from "lucide-react";
-import { useServiceDebtorsViewModel } from "../services/useServiceDebtorsViewModel";
+import { Search, Eye, X, AlertTriangle } from "lucide-react";
+import {
+  useServiceDebtorsViewModel,
+  ServiceCustomerDebtGroup,
+} from "./useServiceDebtorsViewModel";
 import { TableRowSkeleton } from "../../components/Skeletons";
 import { Pagination } from "../../components/Pagination";
 import { DateRangePresetFilter } from "../../components/DateRangePresetFilter";
@@ -24,93 +27,77 @@ const OutstandingDebtBadge = ({ debtBalance }: { debtBalance: number }) => {
   );
 };
 
-/* Interactive Service Order Debt Settlement Modal */
-function ServiceDebtCollectionDialog({
-  saleUuid,
+// ------------------------------------------------------------------
+// NEW: Multi‑sale collection dialog for a customer (service version)
+// ------------------------------------------------------------------
+function ServiceCustomerCollectionDialog({
+  customerId,
+  customerName,
   isOpen,
   onClose,
   onPaymentUpdated,
 }: {
-  saleUuid: string | null;
+  customerId: string | null;
+  customerName: string;
   isOpen: boolean;
   onClose: () => void;
   onPaymentUpdated: () => void;
 }) {
-  const { getSaleDetails, updateHistoricPayment } =
+  const { getUnpaidSalesForCustomer, updateHistoricPayment } =
     useServiceDebtorsViewModel();
-  const [sale, setSale] = useState<any>(null);
-  const [items, setItems] = useState<any[]>([]);
-  const [amountPaid, setAmountPaid] = useState<string>("");
-  const [discountAmount, setDiscountAmount] = useState<string>("");
+  const [unpaidSales, setUnpaidSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [updatingUuid, setUpdatingUuid] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const fetchDetails = async () => {
-    if (!saleUuid) return;
+  const fetchUnpaidSales = async () => {
+    if (!isOpen) return;
     setLoading(true);
     try {
-      const { sale: sData, items: iData } = await getSaleDetails(saleUuid);
-      setSale(sData);
-      setItems(iData);
-      setAmountPaid(String(sData.amount_paid));
-      setDiscountAmount(String(sData.discount_amount || 0));
+      const sales = await getUnpaidSalesForCustomer(customerId);
+      setUnpaidSales(sales);
       setError("");
     } catch (err) {
-      setError("Failed retrieving transaction pipeline information.");
+      setError("Failed to load customer service debt details");
     } finally {
       setLoading(false);
     }
   };
 
   React.useEffect(() => {
-    if (isOpen && saleUuid) fetchDetails();
-  }, [isOpen, saleUuid]);
+    if (isOpen) fetchUnpaidSales();
+  }, [isOpen, customerId]);
 
-  const handleUpdatePayment = async () => {
-    if (!saleUuid) return;
-    const newAmount = parseFloat(amountPaid);
-    const newDiscount = parseFloat(discountAmount) || 0;
-
-    const originalSubtotal = items.reduce(
-      (acc, cur) => acc + (Number(cur.subtotal) || 0),
-      0,
-    );
-    const maxAllowedTotal = Math.max(0, originalSubtotal - newDiscount);
-
-    if (isNaN(newAmount) || newAmount < 0 || newAmount > maxAllowedTotal) {
-      setError(
-        "The submitted funds figure must reside within 0 and total order value.",
-      );
-      return;
-    }
+  const handleUpdatePayment = async (
+    saleUuid: string,
+    newAmountPaid: number,
+    newDiscount: number,
+  ) => {
+    setUpdatingUuid(saleUuid);
     try {
-      await updateHistoricPayment(saleUuid, newAmount, newDiscount);
-      onPaymentUpdated();
-      onClose();
+      await updateHistoricPayment(saleUuid, newAmountPaid, newDiscount);
+      await fetchUnpaidSales(); // refresh list after update
+      onPaymentUpdated(); // refresh main table
     } catch (err) {
-      setError("Failed executing payment adjustment update record.");
+      setError("Payment update failed");
+    } finally {
+      setUpdatingUuid(null);
     }
   };
 
   if (!isOpen) return null;
 
-  const grossSubtotal = items.reduce(
-    (acc, cur) => acc + (Number(cur.subtotal) || 0),
+  const totalDue = unpaidSales.reduce(
+    (sum, s) => sum + ((s.total_amount || 0) - (s.amount_paid || 0)),
     0,
-  );
-  const parsedDiscount = parseFloat(discountAmount) || 0;
-  const netTotalBill = Math.max(0, grossSubtotal - parsedDiscount);
-  const trailingArrears = Math.max(
-    0,
-    netTotalBill - (parseFloat(amountPaid) || 0),
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-900 shadow-2xl w-full max-w-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-zinc-900 shadow-2xl w-full max-w-4xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center p-4 border-b border-zinc-100 dark:border-zinc-800">
-          <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2 dark:text-white text-amber-600">
-            <AlertTriangle size={18} /> Service Debt Collection Desk
+          <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2 text-amber-600 dark:text-amber-400">
+            <AlertTriangle size={18} /> Service Debt Collection – {customerName}
           </h2>
           <button
             onClick={onClose}
@@ -124,143 +111,88 @@ function ServiceDebtCollectionDialog({
           {error && <p className="text-xs text-rose-500 font-bold">{error}</p>}
           {loading ? (
             <div className="text-center py-10 text-zinc-500 italic">
-              Retrieving file dossiers...
+              Loading outstanding service invoices...
             </div>
-          ) : sale ? (
+          ) : unpaidSales.length === 0 ? (
+            <div className="text-center py-10 text-emerald-600 font-bold">
+              No pending service debts for this customer.
+            </div>
+          ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-zinc-50 dark:bg-zinc-800/50 p-4 border border-zinc-100 dark:border-zinc-800">
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">
-                    Invoice Token
-                  </span>
-                  <span className="text-xs font-mono font-bold text-zinc-700 dark:text-zinc-200">
-                    {sale.uuid.slice(0, 8)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">
-                    Date Issued
-                  </span>
-                  <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
-                    {new Date(sale.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">
-                    Assigned Client
-                  </span>
-                  <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200">
-                    {sale.customer_name || "Walk-in Profile"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase mb-1 block">
-                    Account Standing
-                  </span>
-                  <OutstandingDebtBadge
-                    debtBalance={
-                      Number(sale.total_amount) - Number(sale.amount_paid)
-                    }
-                  />
-                </div>
+              <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 border border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                <span className="text-xs font-bold uppercase text-zinc-500">
+                  Total Outstanding
+                </span>
+                <span className="text-2xl font-black text-amber-600">
+                  {formatUGX(totalDue)}
+                </span>
               </div>
 
-              <div className="border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 text-[10px] font-black uppercase">
-                    <tr>
-                      <th className="px-4 py-2 text-left">
-                        Rendered Service Summary
-                      </th>
-                      <th className="px-4 py-2 text-right">Units</th>
-                      <th className="px-4 py-2 text-right">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:bg-black dark:text-zinc-200">
-                    {items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-3">
-                          <p className="font-bold">{item.service_name}</p>
-                          <p className="text-[10px] text-zinc-400">
-                            {item.variant_name
-                              ? `${item.variant_name}`
-                              : "Standard Variant Offering"}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-xs">
-                          {formatUGX(item.subtotal)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {unpaidSales.map((sale) => {
+                const balance =
+                  (sale.total_amount || 0) - (sale.amount_paid || 0);
+                return (
+                  <div
+                    key={sale.uuid}
+                    className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-3"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-xs text-zinc-400">
+                          Invoice #{sale.uuid.slice(0, 8)}
+                        </p>
+                        <p className="text-sm font-bold mt-1">
+                          {new Date(sale.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <OutstandingDebtBadge debtBalance={balance} />
+                    </div>
 
-              <div className="bg-zinc-100 dark:bg-zinc-950 p-5 space-y-4 border border-zinc-200 dark:border-zinc-800">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase text-zinc-400 flex items-center gap-1">
-                      <Percent size={12} /> Markdown Markdown
-                    </label>
-                    <input
-                      type="number"
-                      value={discountAmount}
-                      onChange={(e) => setDiscountAmount(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm mt-1 dark:text-white font-bold text-rose-500 outline-none focus:border-rose-500"
+                    <div className="text-sm text-zinc-600 dark:text-zinc-300">
+                      {sale.items_summary}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-dashed border-zinc-200 dark:border-zinc-800">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-zinc-400">
+                          Total Bill
+                        </label>
+                        <p className="font-mono font-bold">
+                          {formatUGX(sale.total_amount)}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-zinc-400">
+                          Already Paid
+                        </label>
+                        <p className="font-mono">
+                          {formatUGX(sale.amount_paid)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Inline payment updater for this sale */}
+                    <ServiceSalePaymentUpdater
+                      saleUuid={sale.uuid}
+                      currentPaid={sale.amount_paid}
+                      currentDiscount={sale.discount_amount}
+                      total={sale.total_amount}
+                      isUpdating={updatingUuid === sale.uuid}
+                      onUpdate={handleUpdatePayment}
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase text-zinc-400">
-                      Funds Collected To Date
-                    </label>
-                    <input
-                      type="number"
-                      value={amountPaid}
-                      onChange={(e) => setAmountPaid(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm mt-1 dark:text-white font-bold text-emerald-600 outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="text-right col-span-2 md:col-span-1">
-                    <label className="text-[10px] font-bold uppercase text-zinc-400">
-                      Outstanding Deficit
-                    </label>
-                    <p
-                      className={`text-lg font-black mt-1 ${trailingArrears > 0 ? "text-rose-500" : "text-emerald-600"}`}
-                    >
-                      {trailingArrears > 0
-                        ? formatUGX(trailingArrears)
-                        : "COMPLETELY PAID"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-dashed border-zinc-200 dark:border-zinc-800">
-                  <span className="text-xs font-bold uppercase text-zinc-500">
-                    Net Adjusted Order Total
-                  </span>
-                  <span className="text-xl font-black dark:text-white">
-                    {formatUGX(netTotalBill)}
-                  </span>
-                </div>
-              </div>
+                );
+              })}
             </>
-          ) : null}
+          )}
         </div>
 
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-bold uppercase dark:text-zinc-400"
           >
-            Cancel
-          </button>
-          <button
-            onClick={handleUpdatePayment}
-            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 text-xs font-bold uppercase transition-all shadow-lg shadow-amber-600/20"
-          >
-            Post Payments
+            Close
           </button>
         </div>
       </div>
@@ -268,14 +200,108 @@ function ServiceDebtCollectionDialog({
   );
 }
 
-/* Master Service Debtors Management Component View */
+// Helper component for inline payment editing per service sale
+function ServiceSalePaymentUpdater({
+  saleUuid,
+  currentPaid,
+  currentDiscount,
+  total,
+  isUpdating,
+  onUpdate,
+}: {
+  saleUuid: string;
+  currentPaid: number;
+  currentDiscount: number;
+  total: number;
+  isUpdating: boolean;
+  onUpdate: (uuid: string, newPaid: number, newDiscount: number) => void;
+}) {
+  const [amountPaid, setAmountPaid] = useState(String(currentPaid));
+  const [discountAmount, setDiscountAmount] = useState(String(currentDiscount));
+  const [error, setError] = useState("");
+
+  const handleSubmit = () => {
+    const newPaid = parseFloat(amountPaid);
+    const newDiscount = parseFloat(discountAmount);
+    const derivedSubtotal = total + currentDiscount; // original subtotal before discount
+    if (
+      isNaN(newDiscount) ||
+      newDiscount < 0 ||
+      newDiscount > derivedSubtotal
+    ) {
+      setError("Invalid discount amount");
+      return;
+    }
+    const newTotal = Math.max(0, derivedSubtotal - newDiscount);
+    if (isNaN(newPaid) || newPaid < 0 || newPaid > newTotal) {
+      setError("Payment amount exceeds total bill");
+      return;
+    }
+    setError("");
+    onUpdate(saleUuid, newPaid, newDiscount);
+  };
+
+  return (
+    <div className="pt-2 space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className="text-[10px] font-bold uppercase text-zinc-400">
+            Discount
+          </label>
+          <input
+            type="number"
+            value={discountAmount}
+            onChange={(e) => setDiscountAmount(e.target.value)}
+            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase text-zinc-400">
+            Payment Received
+          </label>
+          <input
+            type="number"
+            value={amountPaid}
+            onChange={(e) => setAmountPaid(e.target.value)}
+            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex items-end">
+          <button
+            onClick={handleSubmit}
+            disabled={isUpdating}
+            className="bg-amber-600 hover:bg-amber-700 disabled:bg-zinc-400 text-white px-4 py-2 text-xs font-bold uppercase w-full"
+          >
+            {isUpdating ? "Updating..." : "Apply"}
+          </button>
+        </div>
+      </div>
+      {error && <p className="text-rose-500 text-[11px]">{error}</p>}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------
+// Main Page Component (grouped by customer for service debts)
+// ------------------------------------------------------------------
 export default function ServiceDebtorsManagementPage() {
   const vm = useServiceDebtorsViewModel();
-  const [selectedSaleUuid, setSelectedSaleUuid] = useState<string | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<{
+    id: string | null;
+    name: string;
+  } | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeDateIndicator, setActiveDateIndicator] = useState<string | null>(
     null,
   );
+
+  const handleCollect = (group: ServiceCustomerDebtGroup) => {
+    setSelectedCustomer({
+      id: group.customer_id,
+      name: group.customer_name,
+    });
+    setIsDialogOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black px-2">
@@ -292,6 +318,7 @@ export default function ServiceDebtorsManagementPage() {
           )}
 
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+            {/* Search and date filter */}
             <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 flex flex-col sm:flex-row items-center gap-4">
               <div className="relative flex-1 w-full">
                 <Search
@@ -317,18 +344,15 @@ export default function ServiceDebtorsManagementPage() {
               </div>
             </div>
 
-            {/* Data Table Area */}
+            {/* Grouped Data Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-zinc-50/50 dark:bg-black text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">Client</th>
-                    <th className="px-6 py-4">Services Performed</th>
-                    <th className="px-6 py-4">Service Date</th>
-                    <th className="px-6 py-4 text-right">Invoiced Gross</th>
-                    <th className="px-6 py-4 text-right">Discount</th>
+                    <th className="px-6 py-4">Unpaid Service Invoices</th>
                     <th className="px-6 py-4 text-right">
-                      Unpaid Arrears Balance
+                      Total Amount Demanded
                     </th>
                     <th className="px-6 py-4 text-right">Action</th>
                   </tr>
@@ -336,10 +360,10 @@ export default function ServiceDebtorsManagementPage() {
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 dark:bg-black dark:text-zinc-300">
                   {vm.loading ? (
                     <TableRowSkeleton />
-                  ) : vm.debtorsList.length === 0 ? (
+                  ) : vm.debtorsGroups.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={4}
                         className="px-6 py-12 text-center text-zinc-400 text-xs italic"
                       >
                         Clean Sheet: No outstanding service debt structures
@@ -347,53 +371,31 @@ export default function ServiceDebtorsManagementPage() {
                       </td>
                     </tr>
                   ) : (
-                    vm.debtorsList.map((sale) => {
-                      const total = Number(sale.total_amount) || 0;
-                      const paid = Number(sale.amount_paid) || 0;
-                      const discount = Number(sale.discount_amount) || 0;
-                      const balance = total - paid;
-
-                      return (
-                        <tr
-                          key={sale.uuid}
-                          className="bg-amber-50/30 hover:bg-amber-100/50 dark:bg-amber-950/10 dark:hover:bg-amber-900/20 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-bold text-zinc-900 dark:text-zinc-100">
-                            {sale.customer_name || "Walk-in Guest Profile"}
-                          </td>
-                          <td
-                            className="px-6 py-4 text-xs text-zinc-500 max-w-[240px] truncate"
-                            title={sale.items_summary}
+                    vm.debtorsGroups.map((group) => (
+                      <tr
+                        key={group.customer_id}
+                        className="bg-amber-50/30 hover:bg-amber-100/50 dark:bg-amber-950/10 dark:hover:bg-amber-900/20 transition-colors"
+                      >
+                        <td className="px-6 py-4 font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                          {group.customer_name}
+                        </td>
+                        <td className="px-6 py-4 text-xs text-zinc-500 dark:text-zinc-400">
+                          {group.sales.length} invoice(s)
+                        </td>
+                        <td className="px-6 py-4 text-right font-mono font-black text-amber-600">
+                          {formatUGX(group.total_due)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleCollect(group)}
+                            className="bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 p-2 rounded-lg transition-all"
+                            title="Collect Payments"
                           >
-                            {sale.items_summary}
-                          </td>
-                          <td className="px-6 py-4 text-xs text-zinc-400">
-                            {new Date(sale.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 text-right font-mono font-bold text-xs text-zinc-500">
-                            {formatUGX(total)}
-                          </td>
-                          <td className="px-6 py-4 text-right font-mono text-xs text-rose-500 font-bold">
-                            {discount > 0 ? formatUGX(discount) : "-"}
-                          </td>
-                          <td className="px-6 py-4 text-right font-mono text-xs text-rose-600 font-black">
-                            {formatUGX(balance)}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              onClick={() => {
-                                setSelectedSaleUuid(sale.uuid);
-                                setIsDialogOpen(true);
-                              }}
-                              className="bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 p-2 rounded-lg transition-all"
-                              title="Post Payments"
-                            >
-                              <Eye size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
+                            <Eye size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
@@ -413,8 +415,9 @@ export default function ServiceDebtorsManagementPage() {
           </div>
         </div>
 
-        <ServiceDebtCollectionDialog
-          saleUuid={selectedSaleUuid}
+        <ServiceCustomerCollectionDialog
+          customerId={selectedCustomer?.id ?? null}
+          customerName={selectedCustomer?.name ?? ""}
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           onPaymentUpdated={vm.refreshServiceDebtors}

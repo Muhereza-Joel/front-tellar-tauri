@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   UserPlus,
@@ -18,11 +18,13 @@ import {
 import ThemeSwitcher from "../components/ThemeSwitcher";
 import { useSetupViewModel } from "./useSetupViewModel";
 import UpdateNotification from "../components/UpdateNotification";
+import { getVersion } from "@tauri-apps/api/app";
 
 export default function SetupPage() {
   const { loading, errors, initializeSystem, restoreSystem, restoreProgress } =
     useSetupViewModel();
   const [setupMode, setSetupMode] = useState<"new" | "restore">("new");
+  const [version, setVersion] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,6 +33,12 @@ export default function SetupPage() {
     age: "",
     tenantId: "",
   });
+
+  useEffect(() => {
+    getVersion()
+      .then(setVersion)
+      .catch(() => {});
+  }, []);
 
   const inputStyle = (errorKey: string) => `
     w-full bg-white dark:bg-black border rounded-md px-3 py-1.5 text-sm outline-none transition-all
@@ -62,8 +70,8 @@ export default function SetupPage() {
           </div>
           <div>
             <h1 className="text-sm font-bold leading-none">Smart POS</h1>
-            <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
-              Terminal Initialization • v1.0.4
+            <p className="text-[10px] tracking-widest text-zinc-500 mt-1">
+              Terminal Initialization • v{version}
             </p>
           </div>
         </div>

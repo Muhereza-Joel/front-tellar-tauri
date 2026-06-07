@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Lock,
@@ -14,6 +14,7 @@ import { useAuth } from "../context/AuthContext";
 import ThemeSwitcher from "../components/ThemeSwitcher";
 import { getDatabase } from "../../db";
 import { users } from "../../db/schemas/user";
+import { getVersion } from "@tauri-apps/api/app";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -24,6 +25,13 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
   const router = useRouter();
+  const [version, setVersion] = useState("");
+
+  useEffect(() => {
+    getVersion()
+      .then(setVersion)
+      .catch(() => {});
+  }, []);
 
   const inputStyle = (hasError: boolean) => `
     w-full bg-white dark:bg-black border rounded-md px-3 py-2.5 text-sm outline-none transition-all
@@ -89,8 +97,8 @@ export default function Login() {
           </div>
           <div>
             <h1 className="text-sm font-bold leading-none">Smart POS</h1>
-            <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-1">
-              Terminal Access • v1.0.4
+            <p className="text-[10px]  tracking-widest text-zinc-500 mt-1">
+              Terminal Access • v{version}
             </p>
           </div>
         </div>
@@ -103,7 +111,9 @@ export default function Login() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-blue-500 shadow-sm">
               <ShieldCheck size={24} />
             </div>
-            <h2 className="text-xl font-bold tracking-tight">Welcome Back</h2>
+            <h2 className="text-xl font-bold tracking-tight">
+              Login To FrontTella
+            </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Sign in to manage your inventory and sales
             </p>

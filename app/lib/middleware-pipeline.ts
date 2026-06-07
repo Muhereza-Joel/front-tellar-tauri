@@ -22,8 +22,8 @@ export const middlewarePipeline = {
     const publicPaths = ["/login", "/setup-root"];
     if (publicPaths.includes(pathname)) return null;
 
-    // Use the consistent key from AuthContext
-    const sessionStr = localStorage.getItem("pos_session");
+    // Use the consistent key from AuthContext (now sessionStorage)
+    const sessionStr = sessionStorage.getItem("pos_session");
     if (!sessionStr) return "/login";
 
     try {
